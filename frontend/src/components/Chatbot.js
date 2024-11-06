@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaUserMd } from 'react-icons/fa'; // Import doctor icon from React Icons
-import HealthcarePopup from './HealthcarePopup'; // Adjust the import path as necessary
-import ArrowIcon from './ArrowIcon';
+import HealthcarePopup from '../components/Pages/HealthcarePopup.js'; // Adjust the import path as necessary
+import ArrowIcon from '../components/Pages/ArrowIcon';
 
 const Chatbot = () => {
     const [messages, setMessages] = useState([]);

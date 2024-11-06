@@ -1,8 +1,7 @@
 import React from 'react';
-import InsurNavbar from './InsurNavbar';
+import InsurNavbar from '../Pages/InsurNavbar';
 import { motion } from 'framer-motion';
-import Chatbot from './Chatbot'; // Import the Chatbot
-
+import Chatbot from '../Chatbot.js';
 const ContactUs = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();

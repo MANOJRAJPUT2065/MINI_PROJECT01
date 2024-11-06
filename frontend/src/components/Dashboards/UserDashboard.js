@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
@@ -7,9 +7,9 @@ import Particles from 'react-tsparticles';
 const UserDashboard = () => {
     const navigate = useNavigate();
     const [userProfile, setUserProfile] = useState({
-        name: 'Manoj Singh',
-        email: 'smanojsingh@gmail.com',
-        phone: '+91 7006808150',
+        name: ' ',
+        email: ' ',
+        phone: '',
         profilePicture: 'https://via.placeholder.com/100',
     });
     const [isEditing, setIsEditing] = useState(false);
@@ -93,35 +93,82 @@ const UserDashboard = () => {
         }
     };
 
-    const handleReportUpload = async () => {
-        if (!reportFile) {
-            setErrorMessage('Please select a report to upload.');
-            return;
+//     const handleReportUpload = async () => {
+//         if (!reportFile) {
+//             setErrorMessage('Please select a report to upload.');
+//             return;
+//         }
+
+//         setLoading(true);
+//         setErrorMessage('');
+//         setSuccessMessage('');
+
+//         try {
+//             const formData = new FormData();
+//             formData.append('report', reportFile);
+// // TODO:
+//             const response = await axios.post('http://localhost:5000/api/upload-report', formData);
+//             if (response.data && response.data.secure_url) {
+//                 const reportUrl = response.data.secure_url;
+//                 setReports([...reports, reportUrl]); // Add the new report URL to the list
+//                 setSuccessMessage('Report uploaded successfully!');
+//                 setReportFile(null);
+//             } else {
+//                 throw new Error('Report URL not found in response.');
+//             }
+//         } catch (error) {
+//             setErrorMessage(error.response?.data?.error?.message || 'Failed to upload report. Please try again.');
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+const handleReportUpload = async () => {
+    if (!reportFile) {
+        setErrorMessage('Please select a report to upload.');
+        return;
+    }
+
+    setLoading(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+        const formData = new FormData();
+        formData.append('report', reportFile);
+
+        const response = await axios.post('http://localhost:5000/api/upload-report', formData);
+        if (response.data && response.data.reportUrl) {
+            const reportUrl = response.data.reportUrl; // Use the saved report URL
+            setReports(prevReports => [...prevReports, reportUrl]); // Add the new report URL to the list
+            setSuccessMessage('Report uploaded successfully!');
+            setReportFile(null);
+        } else {
+            throw new Error('Report URL not found in response.');
         }
+    } catch (error) {
+        setErrorMessage(error.response?.data?.error?.message || 'Failed to upload report. Please try again.');
+    } finally {
+        setLoading(false);
+    }
+};
 
-        setLoading(true);
-        setErrorMessage('');
-        setSuccessMessage('');
 
-        try {
-            const formData = new FormData();
-            formData.append('report', reportFile);
+    // TODO: To get report from cloudinary
+ 
 
-            const response = await axios.post('http://localhost:5000/api/upload-report', formData);
-            if (response.data && response.data.secure_url) {
-                const reportUrl = response.data.secure_url;
-                setReports([...reports, reportUrl]); // Add the new report URL to the list
-                setSuccessMessage('Report uploaded successfully!');
-                setReportFile(null);
-            } else {
-                throw new Error('Report URL not found in response.');
-            }
-        } catch (error) {
-            setErrorMessage(error.response?.data?.error?.message || 'Failed to upload report. Please try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
+useEffect(() => {
+    const fetchReports = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/reports');
+            setReports(response.data); // Update the state with fetched reports
+        } catch (error) {
+            setErrorMessage('Failed to fetch reports.');
+        }
+    };
+    fetchReports();
+}, []);
+
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -129,6 +176,9 @@ const UserDashboard = () => {
         navigate('/login');
     };
 
+
+
+    
     return (
         <div className="min-h-screen relative overflow-hidden">
             <Particles
@@ -221,7 +271,8 @@ const UserDashboard = () => {
                                     name="name"
                                     value={userProfile.name}
                                     onChange={handleProfileChange}
-                                    className="border p-2 rounded mb-2 w-full"
+                                    className="border p-2 rounded mb-2 w-full text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    
                                     placeholder="Name"
                                 />
                                 <input
@@ -293,14 +344,26 @@ const UserDashboard = () => {
                     </button>
                     <h3 className="font-semibold mt-4">Uploaded Reports</h3>
                     <ul>
-                        {reports.map((report, index) => (
-                            <li key={index} className="mb-2">
-                                <a href={report} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                    View Report {index + 1}
-                                </a>
-                            </li>
-                        ))}
-                    </ul>
+                    {reports.map((reportUrl, index) => (
+    <li key={index} className="mb-2">
+        <a href={reportUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+            View Report {index + 1}
+        </a>
+    </li>
+))}
+
+</ul>
+
+<ul>
+                {reports.map((report) => (
+                    <li key={report._id}>
+                        <a href={report.reportUrl} target="_blank" rel="noopener noreferrer">
+                            View Report
+                        </a>
+                    </li>
+                ))}
+            </ul>
+                    
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -327,3 +390,5 @@ const UserDashboard = () => {
 };
 
 export default UserDashboard;
+
+ 
