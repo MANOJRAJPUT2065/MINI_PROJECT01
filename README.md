@@ -10,6 +10,7 @@ A comprehensive healthcare system that allows users to manage their health recor
 - [Setup Instructions](#setup-instructions)
   - [Backend Setup](#backend-setup)
   - [Frontend Setup](#frontend-setup)
+- [Hosting](#hosting)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
@@ -64,3 +65,18 @@ To get the project running locally, follow the setup instructions below.
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/your-username/healthcare-system.git
+
+### Key Additions:
+- **Hosting Section**: Added a **Hosting** section with example deployment instructions.
+- **URLs for Backend & Frontend**: Placeholder links where you can include the actual URLs where your app is hosted.
+- **Platform Examples**: Instructions for hosting on platforms like Heroku (for backend) and Vercel/Netlify (for frontend).
+
+You can replace the URLs and instructions according to the actual platform you are using. If you're using a different platform for hosting, such as AWS, DigitalOcean, or Firebase, be sure to update the instructions for those services.
+
+
+### Key Additions:
+- **Hosting Section**: `https://serene-lily-4f8652.netlify.app/`
+- **URLs for Backend & Frontend**: Placeholder links where you can include the actual URLs where your app is hosted.
+- **Platform Examples**: Instructions for hosting on platforms like Heroku (for backend Note : I have not deploy Backend code yet soon i will d)Netlify (for frontend).
+
+ 
