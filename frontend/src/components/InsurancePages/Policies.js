@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 // Example components for Claims and Settings
 const Policies = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     
     // States for Claims and Settings
     const [activeTab, setActiveTab] = useState('claims');

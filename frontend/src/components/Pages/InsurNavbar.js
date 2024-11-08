@@ -52,6 +52,8 @@ const InsurNavbar = () => {
                     <Link to="/about" className="hover:underline">About</Link>
                     <Link to="/insurance" className="hover:underline">Health Insurance</Link>
                     <Link to="/contact" className="hover:underline">Contact</Link>
+                    <Link to="/policies" className="hover:underline">Policies</Link>
+                    
                 </div>
                 <div className="space-x-4">
                     <Link to="/login">

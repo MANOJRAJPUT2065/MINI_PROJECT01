@@ -90,6 +90,8 @@ import ClaimsHistory from './components/InsurancePages/ClaimsHistory.js';
 import Reports from './components/InsurancePages/Reports.js';
 import UserManagement from './components/InsurancePages/UserManagement.js';
 import Compliance from './components/InsurancePages/Compliance.js';
+
+
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
