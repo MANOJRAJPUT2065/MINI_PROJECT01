@@ -8,6 +8,12 @@ import userRoutes from './routes/userRoutes.js';
 import contactRoutes from './routes/contactRoutes.js'; // Import the contact routes
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import claimsRoutes from './routes/claimsRoutes.js'; 
+import reportRoutes from './routes/reportRoutes.js'; // Import report routes
+import userManagementRoutes from './routes/userManagementRoutes.js'; // Import user management routes
+
+import complianceRoutes from './routes/complianceRoutes.js';
+import auditLogRoutes from './routes/auditLogRoutes.js';
 
 dotenv.config();
 
@@ -23,6 +29,16 @@ app.use('/api/user', userRoutes);
 app.use('/api/contact', contactRoutes); 
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/', uploadRoutes); 
+app.use('/api/claims', claimsRoutes);
+app.use('/api/reports', reportRoutes); // To download the report
+// TODO: Still i have to work on this user management
+app.use('/api/users', userManagementRoutes); // Add user management routes
+
+// ----------------------------------------------------------------------------//
+
+app.use('/api/compliance', complianceRoutes);
+app.use('/api/audit-logs', auditLogRoutes);
+
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection (Simplified)
