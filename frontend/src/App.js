@@ -40,6 +40,28 @@ import UserManagement from './components/InsurancePages/UserManagement.js';
 import Compliance from './components/InsurancePages/Compliance.js';
 
 
+
+
+
+
+// DOCTOR DASHBOARD COMPONENTS
+import ManagePolicies from './components/DoctorPages/ManagePolicies';
+import ManageUsers from './components/DoctorPages/ManageUsers';
+import ManageClaims from './components/DoctorPages/ManageClaims';
+import EditUser from './components/DoctorPages/EditUser';
+import ViewClaims from './components/DoctorPages/ViewClaims';
+import ViewReports from './components/DoctorPages/ViewReports';
+import ViewCompliance from './components/DoctorPages/ViewCompliance';
+import SystemSettings from './components/DoctorPages/SystemSettings';
+import ClaimSubmission from './components/DoctorPages/ClaimSubmission';
+import TrackClaimStatus from './components/DoctorPages/TrackClaimStatus';
+import SmartContractInteraction from './components/DoctorPages/SmartContractInteraction';
+import AuditTrail from './components/DoctorPages/AuditTrail';
+import SecureCommunication from './components/DoctorPages/SecureCommunication';
+
+
+
+
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -70,6 +92,28 @@ function App() {
                 <Route path="/user-management" element={<UserManagement />} />
                 <Route path="/compliance" element={<Compliance />} />
 
+
+
+
+                      {/*TODO: Admin Dashboard */}
+
+                      <Route path="/dashboard/doctor" element={<AdminDashboard />} />
+                <Route path="/dashboard/doctor/manage-policies" element={<ManagePolicies />} />
+                <Route path="/dashboard/doctor/manage-users" element={<ManageUsers />} />
+                <Route path="/dashboard/doctor/manage-claims" element={<ManageClaims />} />
+                <Route path="/dashboard/doctor/edit-user/:userId" element={<EditUser />} />
+                <Route path="/dashboard/doctor/view-claims" element={<ViewClaims />} />
+                <Route path="/dashboard/doctor/view-reports" element={<ViewReports />} />
+                <Route path="/dashboard/doctor/view-compliance" element={<ViewCompliance />} />
+                <Route path="/dashboard/doctor/system-settings" element={<SystemSettings />} />
+                <Route path="/dashboard/doctor/claim-submission" element={<ClaimSubmission />} />
+                <Route path="/dashboard/doctor/track-claim-status" element={<TrackClaimStatus />} />
+                <Route path="/dashboard/doctor/smart-contract-interaction" element={<SmartContractInteraction />} />
+                <Route path="/dashboard/doctor/audit-trail" element={<AuditTrail />} />
+                <Route path="/dashboard/doctor/secure-communication" element={<SecureCommunication />} />
+
+
+
                 {/* Protected Routes */}    
                 <Route 
                     path="/dashboard/user" 
@@ -92,3 +136,6 @@ function App() {
 }
 
 export default App;
+
+
+

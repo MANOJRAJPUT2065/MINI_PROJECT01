@@ -1,87 +1,164 @@
-// src/components/AdminDashboard.js
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const AdminDashboard = () => {
-    const navigate = useNavigate(); // Get the navigate function
+// Sidebar Component (for Doctor Dashboard)
+const Sidebar = () => (
+    <motion.div
+        className="w-64 bg-white shadow-lg p-6 flex flex-col justify-between transform transition-all duration-300"
+        initial={{ opacity: 0, x: -250 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ x: 0 }}
+        transition={{ duration: 0.5 }}
+    >
+        <div className="flex items-center space-x-4 mb-6">
+            <img
+                src="https://via.placeholder.com/40"
+                alt="Profile"
+                className="rounded-full w-10 h-10"
+            />
+            <span className="text-lg font-semibold text-teal-600">Doctor Name</span>
+        </div>
 
+        <ul className="space-y-4">
+            {/* Doctor Dashboard Sidebar Links */}
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor" className="text-teal-600">Dashboard Overview</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/manage-policies" className="text-teal-600">Manage Policies</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/manage-users" className="text-teal-600">Manage Users</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/manage-claims" className="text-teal-600">Manage Claims</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/view-claims" className="text-teal-600">View Claims</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/view-reports" className="text-teal-600">View Reports</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/view-compliance" className="text-teal-600">Compliance</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/system-settings" className="text-teal-600">System Settings</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/claim-submission" className="text-teal-600">Claim Submission</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/track-claim-status" className="text-teal-600">Track Claim Status</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/smart-contract-interaction" className="text-teal-600">Smart Contract</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/audit-trail" className="text-teal-600">Audit Trail</Link>
+            </li>
+            <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
+                <Link to="/dashboard/doctor/secure-communication" className="text-teal-600">Secure Communication</Link>
+            </li>
+        </ul>
+    </motion.div>
+);
+
+const AdminDashboard = () => {
+    const navigate = useNavigate();
+
+    // Logout handler
     const LogoutHandler = () => {
-        // Remove token and role from localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('role');
-        navigate('/login'); 
+        navigate('/login');
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-800 p-8">
-            <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <motion.div 
-                    className="flex justify-between items-center mb-8"
-                    initial={{ opacity: 0, y: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <h1 className="text-3xl font-semibold">Admin Dashboard</h1>
-                    <div className="flex items-center">
-                        <img 
-                            src="https://via.placeholder.com/40" // Replace with your image URL
-                            alt="Profile"
-                            className="w-10 h-10 rounded-full mr-4 border-2 border-blue-500"
-                        />
-                        <button 
-                            className="bg-blue-500 text-white py-2 px-4 rounded-lg"
-                            onClick={LogoutHandler}
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </motion.div>
+        <div className="flex min-h-screen bg-gradient-to-r from-teal-400 to-blue-500">
+            {/* Sidebar */}
+            <Sidebar />
 
-                {/* Main content */}
-                <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-3 gap-6"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                    {/* Manage Users */}
-                    <motion.div 
-                        className="bg-white shadow-md p-6 rounded-lg"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2 }}
+            {/* Main Content Area */}
+            <div className="flex-1 p-8">
+                {/* Back Button */}
+                <div className="mb-4">
+                    <button
+                        className="bg-teal-600 text-white py-2 px-4 rounded-lg hover:bg-teal-700 transition"
+                        onClick={() => navigate(-1)}
                     >
-                        <h2 className="font-semibold text-lg mb-4">Manage Users</h2>
-                        <p className="text-gray-600 mb-4">Control and edit user accounts.</p>
-                        <Link to="/manage-users" className="text-blue-500 font-semibold">
+                        Back
+                    </button>
+                </div>
+
+                {/* Top Navbar */}
+                <div className="flex items-center justify-between bg-white p-4 shadow-md rounded-lg mb-6">
+                    {/* Profile Section */}
+                    <div className="flex items-center space-x-4">
+                        <img
+                            src="https://via.placeholder.com/40"
+                            alt="Profile"
+                            className="rounded-full w-10 h-10"
+                        />
+                        <span className="text-lg font-semibold text-teal-600">Doctor Name</span>
+                    </div>
+
+                    {/* Logout Button */}
+                    <button
+                        className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition"
+                        onClick={LogoutHandler}
+                    >
+                        Logout
+                    </button>
+                </div>
+
+                {/* Main Dashboard Content */}
+                <motion.div
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1 }}
+                >
+                    {/* Manage Users Card */}
+                    <motion.div
+                        className="bg-white rounded-xl shadow-lg p-6"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 100 }}
+                    >
+                        <h3 className="text-2xl font-bold text-teal-600 mb-4">Manage Users</h3>
+                        <p className="text-gray-600">Control and edit user accounts.</p>
+                        <Link to="/dashboard/doctor/manage-users" className="mt-4 text-teal-600 hover:text-teal-700 transition">
                             Go to User Management
                         </Link>
                     </motion.div>
 
-                    {/* View Reports */}
-                    <motion.div 
-                        className="bg-white shadow-md p-6 rounded-lg"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2 }}
+                    {/* Manage Claims Card */}
+                    <motion.div
+                        className="bg-white rounded-xl shadow-lg p-6"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 100 }}
                     >
-                        <h2 className="font-semibold text-lg mb-4">View Reports</h2>
-                        <p className="text-gray-600 mb-4">Check system and user reports.</p>
-                        <Link to="/view-reports" className="text-blue-500 font-semibold">
-                            Go to Reports
+                        <h3 className="text-2xl font-bold text-teal-600 mb-4">Manage Claims</h3>
+                        <p className="text-gray-600">Handle claim submissions and updates.</p>
+                        <Link to="/dashboard/doctor/manage-claims" className="mt-4 text-teal-600 hover:text-teal-700 transition">
+                            Manage Claims
                         </Link>
                     </motion.div>
 
-                    {/* Settings */}
-                    <motion.div 
-                        className="bg-white shadow-md p-6 rounded-lg"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.2 }}
+                    {/* View Reports Card */}
+                    <motion.div
+                        className="bg-white rounded-xl shadow-lg p-6"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 100 }}
                     >
-                        <h2 className="font-semibold text-lg mb-4">Settings</h2>
-                        <p className="text-gray-600 mb-4">Adjust system preferences.</p>
-                        <Link to="/settings" className="text-blue-500 font-semibold">
-                            Go to Settings
+                        <h3 className="text-2xl font-bold text-teal-600 mb-4">View Reports</h3>
+                        <p className="text-gray-600">Review system and user reports.</p>
+                        <Link to="/dashboard/doctor/view-reports" className="mt-4 text-teal-600 hover:text-teal-700 transition">
+                            View Reports
                         </Link>
                     </motion.div>
                 </motion.div>

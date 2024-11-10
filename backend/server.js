@@ -15,6 +15,10 @@ import userManagementRoutes from './routes/userManagementRoutes.js'; // Import u
 import complianceRoutes from './routes/complianceRoutes.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 
+
+import insuranceRoutes from './routes/insuranceRoutes.js'; 
+
+
 dotenv.config();
 
 const app = express();
@@ -38,6 +42,9 @@ app.use('/api/users', userManagementRoutes); // Add user management routes
 
 app.use('/api/compliance', complianceRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+
+
+app.use('/api/insurance', insuranceRoutes);  
 
 const PORT = process.env.PORT || 5000;
 

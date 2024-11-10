@@ -5,9 +5,7 @@ export const verifyToken = (req, res, next) => {
   // Extract the token from the Authorization header (Expecting: "Bearer <token>")
   const token = req.header('Authorization')?.split(' ')[1];  // Extract token after "Bearer"
   
-  console.log("Authorization Header:", req.header('Authorization')); // Debugging the header
-  console.log("Extracted Token:", token); // Debugging the token
-
+ 
   if (!token) {
     return res.status(403).json({ message: 'Access denied. No token provided.' });
   }
