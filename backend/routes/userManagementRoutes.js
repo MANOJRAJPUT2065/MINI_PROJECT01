@@ -1,5 +1,5 @@
 import express from 'express';
-import User from '../models/userModel.js';
+import Users from '../models/User.js';
 import bcrypt from 'bcryptjs'; // Ensure bcrypt is imported for password hashing
 import { UserManagement, ActivityLog } from '../models/UserManagement.js';  // Ensure UserManagement is imported correctly
 import { verifyToken, verifyAdmin } from '../middleware/verifyToken.js';  // Middleware to check token and admin role
@@ -8,26 +8,27 @@ const router = express.Router();
 
 // Route: Create User (Admin only)
 router.post('/', verifyToken, verifyAdmin, async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role, blockchainWallet } = req.body;
   console.log(req.body); // To see the incoming data
 
   try {
     // Check if the user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await Users.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists in usermanagement schema' });
+      return res.status(400).json({ message: 'User already exists in the system' });
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the user in the User model
-    const newUser = new User({
+    const newUser = new Users({
       firstName,
       lastName,
       email,
       password: hashedPassword,
       role: role || 'user',  // Default to 'user' role
+      blockchainWallet: blockchainWallet || '', // Optional, can be empty
     });
 
     await newUser.save(); // Save the new user
@@ -55,7 +56,6 @@ router.post('/', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-
 // Route: Change User Role (Admin only)
 router.put('/:userId/role', verifyToken, verifyAdmin, async (req, res) => {
   const { role } = req.body;
@@ -65,7 +65,7 @@ router.put('/:userId/role', verifyToken, verifyAdmin, async (req, res) => {
   }
 
   try {
-    const userManagement = await UserManagement.findById(req.params.userId);
+    const userManagement = await UserManagement.findOne({ 'user': req.params.userId });
     if (!userManagement) {
       return res.status(404).json({ message: 'User not found in user management' });
     }
@@ -76,7 +76,7 @@ router.put('/:userId/role', verifyToken, verifyAdmin, async (req, res) => {
 
     // Log the activity
     const activityLog = new ActivityLog({
-      user: userManagement._id,
+      user: userManagement.user,  // Log action under the user _id
       action: `User role changed to ${role}`,
     });
     await activityLog.save();
@@ -88,11 +88,10 @@ router.put('/:userId/role', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
-
 // Route: Deactivate User (Admin only)
 router.put('/:userId/deactivate', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const userManagement = await UserManagement.findById(req.params.userId);
+    const userManagement = await UserManagement.findOne({ 'user': req.params.userId });
 
     if (!userManagement) {
       return res.status(404).json({ message: 'User not found in user management' });
@@ -104,7 +103,7 @@ router.put('/:userId/deactivate', verifyToken, verifyAdmin, async (req, res) => 
 
     // Log the activity
     const activityLog = new ActivityLog({
-      user: userManagement._id,
+      user: userManagement.user,  // Log action under the user _id
       action: `User deactivated: ${userManagement.firstName} ${userManagement.lastName}`,
     });
     await activityLog.save();
@@ -119,7 +118,11 @@ router.put('/:userId/deactivate', verifyToken, verifyAdmin, async (req, res) => 
 // Route: Get All Users (Admin only)
 router.get('/', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const users = await UserManagement.find().select('firstName lastName email role isActive');
+    // Fetch user details including role and active status
+    const users = await UserManagement.find()
+      .populate('user', 'firstName lastName email role')  // Populate user data like first name, last name, email, and role
+      .select('user isActive role');
+    
     res.status(200).json(users);
   } catch (error) {
     console.error(error);
@@ -130,7 +133,10 @@ router.get('/', verifyToken, verifyAdmin, async (req, res) => {
 // Route: Get Activity Logs (Admin only)
 router.get('/activity-log', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const logs = await ActivityLog.find().populate('user', 'firstName lastName email');
+    const logs = await ActivityLog.find()
+      .populate('user', 'firstName lastName email')
+      .sort({ timestamp: -1 });  // Sort logs in descending order (most recent first)
+    
     res.status(200).json(logs);
   } catch (error) {
     console.error(error);

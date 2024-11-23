@@ -17,6 +17,17 @@ const UserManagement = () => {
 
   const [loading, setLoading] = useState(false);
 
+  // Get token from localStorage
+  const token = localStorage.getItem('authToken');
+
+  // Create an axios instance with the token in the Authorization header
+  const axiosInstance = axios.create({
+    baseURL: 'http://localhost:5000/api', // Your API base URL
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+  });
+
   // Fetch users and activity logs on component mount
   useEffect(() => {
     fetchUsers();
@@ -26,7 +37,7 @@ const UserManagement = () => {
   // Fetch users from the backend
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users');
+      const response = await axiosInstance.get('/users');
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -36,7 +47,7 @@ const UserManagement = () => {
   // Fetch activity logs from the backend
   const fetchActivityLogs = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/users/activity-log');
+      const response = await axiosInstance.get('/users/activity-log');
       setActivityLogs(response.data);
     } catch (error) {
       console.error('Error fetching activity logs:', error);
@@ -47,7 +58,7 @@ const UserManagement = () => {
   const handleCreateUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/users', newUser);
+      const response = await axiosInstance.post('/users', newUser);
       alert(response.data.message);
       fetchUsers(); // Refresh the users list after creation
       setNewUser({
@@ -68,7 +79,7 @@ const UserManagement = () => {
   // Deactivate a user
   const handleDeactivateUser = async (userId) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}/deactivate`);
+      const response = await axiosInstance.put(`/users/${userId}/deactivate`);
       alert(response.data.message);
       fetchUsers(); // Refresh the users list after deactivation
     } catch (error) {
@@ -80,7 +91,7 @@ const UserManagement = () => {
   // Assign a new role to a user
   const handleChangeUserRole = async (userId, newRole) => {
     try {
-      const response = await axios.put(`http://localhost:5000/api/users/${userId}/role`, { role: newRole });
+      const response = await axiosInstance.put(`/users/${userId}/role`, { role: newRole });
       alert(response.data.message);
       fetchUsers(); // Refresh the users list after role update
     } catch (error) {
