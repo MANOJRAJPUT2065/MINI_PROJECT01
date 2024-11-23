@@ -19,6 +19,8 @@ import insuranceRoutes from './routes/insuranceRoutes.js';
 import claimRoutes from './routes/claimRoutes.js';;
 import claimTrackerRoutes from './routes/claimTrackerRoutes.js';
 
+
+
 import quoteRoutes from './routes/quote/quoteRoutes.js';
 dotenv.config();
 
@@ -51,7 +53,6 @@ app.use('/api/insurance', insuranceRoutes);
 app.use('/api/claim-tracker', claimTrackerRoutes); // Add claim tracking routes here
 
 app.use('/api/claims', claimRoutes);
-
 app.use('/api/quote', quoteRoutes); 
 
 const PORT = process.env.PORT || 5000;
