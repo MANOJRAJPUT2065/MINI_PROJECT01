@@ -5,9 +5,13 @@ import { useNavigate } from 'react-router-dom';
 const Logout = () => {
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
+    
+    const handleLogout = () => { 
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            navigate('/login');
+             
+        
     };
 
     return (

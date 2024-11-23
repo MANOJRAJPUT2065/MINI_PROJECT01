@@ -1,31 +1,54 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-// import { useNavigate } from 'react-router-dom';
 
-// Example components for Claims and Settings
+// Example data for health insurance policies and claims
 const Policies = () => {
-    // const navigate = useNavigate();
-    
-    // States for Claims and Settings
     const [activeTab, setActiveTab] = useState('claims');
-    
+    const [selectedPolicy, setSelectedPolicy] = useState(null);
+
+    // Sample health insurance policies
+    const policiesData = [
+        {
+            id: 1,
+            policyName: 'Basic Health Plan',
+            coverage: 'Essential coverage',
+            startDate: '2023-01-01',
+            endDate: '2023-12-31',
+            status: 'Active',
+            claims: [
+                { id: 1, date: '2024-05-01', status: 'Approved', amount: '5000' },
+                { id: 2, date: '2024-06-15', status: 'Pending', amount: '2000' },
+            ]
+        },
+        {
+            id: 2,
+            policyName: 'Premium Health Plan',
+            coverage: 'Comprehensive coverage',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            status: 'Active',
+            claims: [
+                { id: 3, date: '2024-07-10', status: 'Rejected', amount: '1500' },
+            ]
+        },
+    ];
+
     // Handle Tab Navigation (Claims or Settings)
     const handleTabClick = (tab) => {
         setActiveTab(tab);
     };
 
-    // Dummy Claims Data (you can replace it with actual data)
-    const claimsData = [
-        { id: 1, date: '2024-05-01', status: 'Approved', amount: '5000' },
-        { id: 2, date: '2024-06-15', status: 'Pending', amount: '2000' },
-        { id: 3, date: '2024-07-10', status: 'Rejected', amount: '1500' },
-    ];
+    // Select policy to view claims
+    const handlePolicyClick = (policy) => {
+        setSelectedPolicy(policy);
+        setActiveTab('claims');
+    };
 
     return (
         <div className="min-h-screen bg-gray-100 p-8">
             {/* Policies Navbar */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-semibold text-gray-800">Your Policies</h1>
+                <h1 className="text-3xl font-semibold text-gray-800">Your Health Insurance Policies</h1>
             </div>
 
             {/* Tabs for Claims and Settings */}
@@ -45,15 +68,15 @@ const Policies = () => {
             </div>
 
             {/* Display Claims or Settings */}
-            {activeTab === 'claims' ? (
+            {activeTab === 'claims' && selectedPolicy ? (
                 <motion.div
                     className="space-y-6"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5 }}
                 >
-                    {/* Claims Section */}
-                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Claims</h2>
+                    {/* Claims Section for the selected policy */}
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Claims for {selectedPolicy.policyName}</h2>
                     <table className="min-w-full bg-white shadow-lg rounded-lg">
                         <thead>
                             <tr className="bg-gray-200">
@@ -64,7 +87,7 @@ const Policies = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {claimsData.map((claim) => (
+                            {selectedPolicy.claims.map((claim) => (
                                 <tr key={claim.id} className="border-b">
                                     <td className="py-2 px-4">{claim.id}</td>
                                     <td className="py-2 px-4">{claim.date}</td>
@@ -74,6 +97,26 @@ const Policies = () => {
                             ))}
                         </tbody>
                     </table>
+                </motion.div>
+            ) : activeTab === 'claims' && !selectedPolicy ? (
+                <motion.div
+                    className="space-y-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    {/* Policy Selection Section */}
+                    <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select a Policy to View Claims</h2>
+                    <div className="space-y-4">
+                        {policiesData.map((policy) => (
+                            <div key={policy.id} className="bg-white p-6 shadow-lg rounded-lg cursor-pointer" onClick={() => handlePolicyClick(policy)}>
+                                <h3 className="text-xl font-medium text-gray-800">{policy.policyName}</h3>
+                                <p className="text-gray-600">Coverage: {policy.coverage}</p>
+                                <p className="text-gray-600">Status: {policy.status}</p>
+                                <p className="text-gray-600">Policy Period: {policy.startDate} to {policy.endDate}</p>
+                            </div>
+                        ))}
+                    </div>
                 </motion.div>
             ) : (
                 <motion.div

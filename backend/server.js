@@ -13,12 +13,13 @@ import reportRoutes from './routes/reportRoutes.js'; // Import report routes
 import userManagementRoutes from './routes/userManagementRoutes.js'; // Import user management routes
 
 import complianceRoutes from './routes/complianceRoutes.js';
-import auditLogRoutes from './routes/auditLogRoutes.js';
-
-
+import activityLogRoutes from './routes/activityLogRoutes.js';
 import insuranceRoutes from './routes/insuranceRoutes.js'; 
 
+import claimRoutes from './routes/claimRoutes.js';;
+import claimTrackerRoutes from './routes/claimTrackerRoutes.js';
 
+import quoteRoutes from './routes/quote/quoteRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -41,10 +42,17 @@ app.use('/api/users', userManagementRoutes); // Add user management routes
 // ----------------------------------------------------------------------------//
 
 app.use('/api/compliance', complianceRoutes);
-app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 
 app.use('/api/insurance', insuranceRoutes);  
+
+
+app.use('/api/claim-tracker', claimTrackerRoutes); // Add claim tracking routes here
+
+app.use('/api/claims', claimRoutes);
+
+app.use('/api/quote', quoteRoutes); 
 
 const PORT = process.env.PORT || 5000;
 
@@ -56,3 +64,6 @@ mongoose.connect(process.env.MONGO_URI)
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+
+ 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-
+ 
 // Sidebar Component (for Doctor Dashboard)
 const Sidebar = () => (
     <motion.div
@@ -56,7 +56,7 @@ const Sidebar = () => (
                 <Link to="/dashboard/doctor/smart-contract-interaction" className="text-teal-600">Smart Contract</Link>
             </li>
             <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
-                <Link to="/dashboard/doctor/audit-trail" className="text-teal-600">Audit Trail</Link>
+                <Link to="/dashboard/doctor/activity-log" className="text-teal-600">Activity Logs</Link>
             </li>
             <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
                 <Link to="/dashboard/doctor/secure-communication" className="text-teal-600">Secure Communication</Link>
@@ -72,8 +72,9 @@ const AdminDashboard = () => {
     const LogoutHandler = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
-        navigate('/login');
+        navigate('/login');  // redirect to login
     };
+    
 
     return (
         <div className="flex min-h-screen bg-gradient-to-r from-teal-400 to-blue-500">

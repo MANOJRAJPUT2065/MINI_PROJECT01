@@ -53,12 +53,21 @@ import ViewClaims from './components/DoctorPages/ViewClaims';
 import ViewReports from './components/DoctorPages/ViewReports';
 import ViewCompliance from './components/DoctorPages/ViewCompliance';
 import SystemSettings from './components/DoctorPages/SystemSettings';
-import ClaimSubmission from './components/DoctorPages/ClaimSubmission';
-import TrackClaimStatus from './components/DoctorPages/TrackClaimStatus';
+ 
+import ClaimStatusTracker from './components/DoctorPages/ClaimStatusTracker';
 import SmartContractInteraction from './components/DoctorPages/SmartContractInteraction';
-import AuditTrail from './components/DoctorPages/AuditTrail';
+import ActivityLog from './components/DoctorPages/ActivityLog.js';
 import SecureCommunication from './components/DoctorPages/SecureCommunication';
 
+
+
+
+// USER DASHBOARD COMPONENTS
+import ClaimSubmission from './components/Dashboards/PatientDashboard/ClaimSubmission';
+import Settings from './components/Dashboards/PatientDashboard/Settings.js';
+import TrackClaims from './components/Dashboards/PatientDashboard/TrackClaims.js';
+import PatientReports from './components/Dashboards/PatientDashboard/PatientReports.js';
+import PatientDashboardOverview from './components/Dashboards/PatientDashboard/PatientDashboardOverview.js';
 
 
 
@@ -107,12 +116,21 @@ function App() {
                 <Route path="/dashboard/doctor/view-compliance" element={<ViewCompliance />} />
                 <Route path="/dashboard/doctor/system-settings" element={<SystemSettings />} />
                 <Route path="/dashboard/doctor/claim-submission" element={<ClaimSubmission />} />
-                <Route path="/dashboard/doctor/track-claim-status" element={<TrackClaimStatus />} />
+                <Route path="/dashboard/doctor/track-claim-status" element={<ClaimStatusTracker />} />
                 <Route path="/dashboard/doctor/smart-contract-interaction" element={<SmartContractInteraction />} />
-                <Route path="/dashboard/doctor/audit-trail" element={<AuditTrail />} />
+                <Route path="/dashboard/doctor/activity-log" element={<ActivityLog />} />
                 <Route path="/dashboard/doctor/secure-communication" element={<SecureCommunication />} />
 
 
+        {/* TODO:USER DASHBOARD */}
+       {/* User Dashboard with nested routes */}
+       <Route path="/dashboard/patient" element={<UserDashboard />}>
+                <Route path="dashboard-overview" element={<PatientDashboardOverview/>} />
+                <Route path="claim-submission" element={<ClaimSubmission />} />
+                <Route path="track-claims" element={<TrackClaims />} />
+                <Route path="view-reports" element={<PatientReports />} />
+                <Route path="settings" element={<Settings />} />
+            </Route>
 
                 {/* Protected Routes */}    
                 <Route 

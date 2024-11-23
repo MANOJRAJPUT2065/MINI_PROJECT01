@@ -1,75 +1,89 @@
-/* src/index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .reset-password-container {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
 }
 
 .reset-password-container h2 {
-    text-align: center;
+  text-align: center;
 }
 
 .reset-password-container form {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .reset-password-container input {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
 .reset-password-container button {
-    padding: 10px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+  padding: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .reset-password-container button:hover {
-    background-color: #218838;
+  background-color: #218838;
 }
-
-
-
 
 /* Chat Bot CSS */
 .chatbot {
-    transition: transform 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .toggle-button,
 .dark-mode-button {
-    transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .message {
-    transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
 .loading {
-    font-style: italic;
-    margin-top: 10px;
-    animation: blink 1s infinite;
+  font-style: italic;
+  margin-top: 10px;
+  animation: blink 1s infinite;
 }
 
 @keyframes blink {
-    0%, 100% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1;
-    }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
- 
+
+.spinner-border {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

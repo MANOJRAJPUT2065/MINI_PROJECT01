@@ -3,7 +3,7 @@ export const fetchClaims = async () => {
     return [
       {
         id: 1,
-        patientName: 'John Doe',
+        patientName: 'Manoj singh Rajput',
         claimAmount: 1500,
         diagnosis: 'Flu',
         providerName: 'HealthCare Inc.',
@@ -26,6 +26,7 @@ export const fetchClaims = async () => {
     ];
   };
   
+
   export const approveClaim = async (claimId) => {
     // Simulate approval logic
     return new Promise((resolve) => setTimeout(resolve, 1000));
