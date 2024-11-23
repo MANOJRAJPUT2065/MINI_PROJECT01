@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const BLOCKCHAIN_EXPLORER = 'https://blockchainexplorer.com/tx/';
+
 const ClaimHistory = () => {
   const [claims, setClaims] = useState([]);
   const [filteredClaims, setFilteredClaims] = useState([]);
@@ -14,16 +16,20 @@ const ClaimHistory = () => {
     maxAmount: '',
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);  // Error state
   const [selectedClaim, setSelectedClaim] = useState(null);
 
-  // Fetch all claims from the backend (API)
+  // Fetch all claims from the backend
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/claims/history'); // Replace with your actual API endpoint
+        const response = await axios.get('http://localhost:5000/api/claim-history/history', {
+          params: searchParams, // Passing search params to the backend for filtering
+        });
         setClaims(response.data);
         setFilteredClaims(response.data); // Initially, show all claims
       } catch (error) {
+        setError('Error fetching claims. Please try again later.');
         console.error('Error fetching claims:', error);
       } finally {
         setLoading(false);
@@ -31,28 +37,21 @@ const ClaimHistory = () => {
     };
 
     fetchClaims();
-  }, []);
+  }, [searchParams]);
 
   // Filter claims based on search parameters
   useEffect(() => {
-    const filtered = claims.filter((claim) => {
+    setFilteredClaims(claims.filter((claim) => {
       const { patientName, provider, status, fromDate, toDate, minAmount, maxAmount } = searchParams;
 
-      // Filter based on patient name
       const matchesPatientName = patientName ? claim.patientName.toLowerCase().includes(patientName.toLowerCase()) : true;
-      // Filter based on provider
       const matchesProvider = provider ? claim.provider.toLowerCase().includes(provider.toLowerCase()) : true;
-      // Filter based on claim status
       const matchesStatus = status ? claim.status.toLowerCase() === status.toLowerCase() : true;
-      // Filter based on claim date
-      const matchesDateRange = (fromDate && new Date(claim.date) < new Date(fromDate)) || (toDate && new Date(claim.date) > new Date(toDate)) ? false : true;
-      // Filter based on claim amount
-      const matchesAmount = claim.amount >= (minAmount || 0) && claim.amount <= (maxAmount || Infinity);
+      const matchesDateRange = (fromDate && new Date(claim.treatmentDate) < new Date(fromDate)) || (toDate && new Date(claim.treatmentDate) > new Date(toDate)) ? false : true;
+      const matchesAmount = claim.claimAmount >= (minAmount || 0) && claim.claimAmount <= (maxAmount || Infinity);
 
       return matchesPatientName && matchesProvider && matchesStatus && matchesDateRange && matchesAmount;
-    });
-
-    setFilteredClaims(filtered);
+    }));
   }, [claims, searchParams]);
 
   // Handle search input changes
@@ -80,6 +79,9 @@ const ClaimHistory = () => {
   return (
     <div>
       <h2 className="text-3xl font-bold text-teal-600 mb-6">Claim History</h2>
+
+      {/* Error Message */}
+      {error && <div className="bg-red-500 text-white p-4 rounded-md mb-6">{error}</div>}
 
       {/* Search Filters */}
       <div className="my-4 bg-gray-100 p-4 rounded-md shadow-md">
@@ -153,7 +155,7 @@ const ClaimHistory = () => {
               <p><strong>Claim ID:</strong> {claim.id}</p>
               <p><strong>Provider:</strong> {claim.provider}</p>
               <p><strong>Claim Status:</strong> {claim.status}</p>
-              <p><strong>Claim Amount:</strong> ${claim.amount}</p>
+              <p><strong>Claim Amount:</strong> ${claim.claimAmount}</p>
               <button
                 className="bg-blue-500 text-white p-2 rounded-md mt-2 hover:bg-blue-600"
                 onClick={() => showClaimDetails(claim)}
@@ -167,23 +169,19 @@ const ClaimHistory = () => {
 
       {/* Claim Detail Modal */}
       {selectedClaim && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md w-96 shadow-lg">
-            <h3 className="text-2xl font-semibold mb-4">{selectedClaim.patientName}'s Claim Details</h3>
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-md shadow-md w-1/2">
+            <h3 className="text-2xl font-semibold mb-4">Claim Details</h3>
             <p><strong>Claim ID:</strong> {selectedClaim.id}</p>
-            <p><strong>Provider:</strong> {selectedClaim.provider}</p>
-            <p><strong>Status:</strong> {selectedClaim.status}</p>
-            <p><strong>Amount Claimed:</strong> ${selectedClaim.amount}</p>
-            <p><strong>Rejection Reason:</strong> {selectedClaim.rejectionReason || 'N/A'}</p>
+            <p><strong>Diagnosis:</strong> {selectedClaim.diagnosis}</p>
+            <p><strong>Procedure Codes:</strong> {selectedClaim.procedureCodes.join(', ')}</p>
+            <p><strong>Treatment Date:</strong> {selectedClaim.treatmentDate}</p>
             <p><strong>Payment Status:</strong> {selectedClaim.paymentStatus}</p>
-            <p><strong>Claim Date:</strong> {new Date(selectedClaim.date).toLocaleDateString()}</p>
-            <p><strong>Documents:</strong> <a href={selectedClaim.documentLink} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Document</a></p>
-            <p><strong>Blockchain Transaction:</strong> {selectedClaim.blockchainTransaction ?
-              <a href={`https://blockchainexplorer.com/tx/${selectedClaim.blockchainTransaction}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                View Transaction
-              </a> : 'N/A'}</p>
+            <p><strong>Rejection Reason:</strong> {selectedClaim.rejectionReason || 'N/A'}</p>
+            <p><strong>Transaction Hash:</strong> <a href={`${BLOCKCHAIN_EXPLORER}${selectedClaim.transactionHash}`} target="_blank" className="text-blue-500">View on Blockchain</a></p>
+            <p><strong>Claim Document:</strong> <a href={selectedClaim.documentLink} target="_blank" className="text-blue-500">Download</a></p>
             <button
-              className="mt-4 bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+              className="bg-red-500 text-white p-2 rounded-md mt-4 hover:bg-red-600"
               onClick={closeClaimDetails}
             >
               Close

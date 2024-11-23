@@ -19,7 +19,7 @@ import insuranceRoutes from './routes/insuranceRoutes.js';
 import claimRoutes from './routes/claimRoutes.js';;
 import claimTrackerRoutes from './routes/claimTrackerRoutes.js';
 
-
+import claimHistoryRoutes from './routes/claimHistoryRoutes.js';
 
 import quoteRoutes from './routes/quote/quoteRoutes.js';
 dotenv.config();
@@ -49,7 +49,7 @@ app.use('/api/activity-logs', activityLogRoutes);
 
 app.use('/api/insurance', insuranceRoutes);  
 
-
+app.use('/api/claim-history', claimHistoryRoutes);
 app.use('/api/claim-tracker', claimTrackerRoutes); // Add claim tracking routes here
 
 app.use('/api/claims', claimRoutes);
