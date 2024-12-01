@@ -36,12 +36,14 @@ This healthcare system is designed to be a one-stop solution for managing health
 ## Tech Stack
 
 ### **Frontend**
+
 - React.js (with hooks and context for state management)
 - Tailwind CSS (for styling)
 - Framer Motion (for animations)
 - Axios (for API requests)
 
 ### **Backend**
+
 - Node.js (server-side)
 - Express.js (backend framework)
 - MongoDB (NoSQL database)
@@ -49,6 +51,7 @@ This healthcare system is designed to be a one-stop solution for managing health
 - JSON Web Tokens (JWT) for authentication
 
 ### **Additional Tools**
+
 - GitHub (for version control)
 - npm (for package management)
 
@@ -62,3 +65,16 @@ This healthcare system is designed to be a one-stop solution for managing health
    ```bash
    git clone https://github.com/your-username/healthcare-system.git
    cd healthcare-system/backend
+   ```
+2. **Install dependencies**:
+
+```bash
+npm install
+```
+
+3. **Start the server**:
+
+   ```
+   npm start
+   ```
+   
