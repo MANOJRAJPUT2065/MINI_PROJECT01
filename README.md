@@ -75,6 +75,3 @@ npm install
 3. **Start the server**:
 
    ```
-   npm start
-   ```
-   

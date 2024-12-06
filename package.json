@@ -1,0 +1,16 @@
+{
+  "name": "healthcare-system",
+  "version": "1.0.0",
+  "description": "A comprehensive healthcare platform that allows users to manage their health records, insurers to handle claims and policies, and admins to oversee the entire system. It integrates features like user authentication, health insurance management, real-time chatbot support, and more.",
+  "main": "index.js",
+  "dependencies": {
+    "netlify-cli": "^17.37.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
