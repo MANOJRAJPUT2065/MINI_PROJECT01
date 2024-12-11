@@ -342,7 +342,7 @@ const Register = () => {
                 <input
                     type="text"
                     className="border border-gray-300 p-3 mb-4 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-                    placeholder="Blockchain Wallet"
+                    placeholder="Enter Your Aadhaar Number Here"
                     value={blockchainWallet}
                     onChange={(e) => setBlockchainWallet(e.target.value)}
                     required
