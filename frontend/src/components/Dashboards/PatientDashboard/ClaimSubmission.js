@@ -271,7 +271,7 @@
 // export default ClaimSubmission;
 
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const pinataUrl = "https://api.pinata.cloud/pinning/pinFileToIPFS";
@@ -289,6 +289,46 @@ const ClaimSubmission = () => {
     ipfsLink: "",
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isMetaMaskConnected, setIsMetaMaskConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+
+  useEffect(() => {
+    checkMetaMaskConnection();
+  }, []);
+
+  // Check if MetaMask is connected
+  const checkMetaMaskConnection = () => {
+    if (window.ethereum) {
+      window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
+        if (accounts.length > 0) {
+          setIsMetaMaskConnected(true);
+          setWalletAddress(accounts[0]); // Set the connected wallet address
+        } else {
+          setIsMetaMaskConnected(false);
+        }
+      });
+    } else {
+      setIsMetaMaskConnected(false);
+    }
+  };
+
+  // Handle MetaMask connection
+  const connectMetaMask = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
+        setIsMetaMaskConnected(true);
+        setWalletAddress(accounts[0]);
+      } catch (error) {
+        console.error("MetaMask connection failed:", error);
+        alert("MetaMask connection failed.");
+      }
+    } else {
+      alert("MetaMask is not installed.");
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -360,6 +400,10 @@ const ClaimSubmission = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+    if (!isMetaMaskConnected) {
+      alert("MetaMask is not connected. Please connect your MetaMask wallet.");
+      return;
+    }
 
     setIsUploading(true);
     let reportHash = "";
@@ -382,6 +426,7 @@ const ClaimSubmission = () => {
         treatment: formData.treatment,
         claimAmount: formData.claimAmount,
         reportCID: reportHash,
+        walletAddress: walletAddress,  // Add wallet address to the claim data
       };
 
       const response = await fetch("http://localhost:5000/api/_claims/submit", {
@@ -438,16 +483,32 @@ const ClaimSubmission = () => {
       }
     } catch (error) {
       console.error("Error checking claim status:", error);
-      alert("An error occurred while checking the status. Please try again.");
+      alert("Failed to fetch claim status.");
     }
   };
 
   return (
     <div className="max-w-3xl mx-auto mt-10 bg-white p-8 shadow-lg rounded-lg">
       <h1 className="text-2xl font-bold text-teal-600 mb-6">Submit a Claim</h1>
+
+      {/* MetaMask Connect Button */}
+      {!isMetaMaskConnected ? (
+        <button
+          onClick={connectMetaMask}
+          className="w-full bg-orange-600 text-white py-2 px-4 rounded-md mb-6"
+        >
+          Connect MetaMask Wallet
+        </button>
+      ) : (
+        <div className="mb-6">
+          <p>Connected Wallet Address: {walletAddress}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
+        {/* Doctor Name */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="doctorName" className="block text-gray-700 font-medium mb-2">
             Doctor Name
           </label>
           <input
@@ -458,8 +519,10 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Patient Name */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="patientName" className="block text-gray-700 font-medium mb-2">
             Patient Name
           </label>
           <input
@@ -470,8 +533,12 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Doctor ID */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Doctor ID</label>
+          <label htmlFor="doctorId" className="block text-gray-700 font-medium mb-2">
+            Doctor ID
+          </label>
           <input
             type="text"
             name="doctorId"
@@ -480,8 +547,10 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Patient ID */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="patientId" className="block text-gray-700 font-medium mb-2">
             Patient ID
           </label>
           <input
@@ -492,8 +561,12 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Diagnosis */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Diagnosis</label>
+          <label htmlFor="diagnosis" className="block text-gray-700 font-medium mb-2">
+            Diagnosis
+          </label>
           <input
             type="text"
             name="diagnosis"
@@ -502,8 +575,12 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Treatment */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">Treatment</label>
+          <label htmlFor="treatment" className="block text-gray-700 font-medium mb-2">
+            Treatment
+          </label>
           <input
             type="text"
             name="treatment"
@@ -512,59 +589,54 @@ const ClaimSubmission = () => {
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Claim Amount */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="claimAmount" className="block text-gray-700 font-medium mb-2">
             Claim Amount
           </label>
           <input
-            type="number"
+            type="text"
             name="claimAmount"
             value={formData.claimAmount}
             onChange={handleInputChange}
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Report */}
         <div className="mb-4">
-          <label className="block text-gray-700 font-medium mb-2">
-            Upload Report (PDF)
+          <label htmlFor="report" className="block text-gray-700 font-medium mb-2">
+            Report (PDF only)
           </label>
           <input
             type="file"
             name="report"
-            accept="application/pdf"
             onChange={handleFileChange}
+            accept="application/pdf"
             className="w-full px-4 py-2 border rounded-md"
           />
         </div>
+
+        {/* Submit Button */}
         <button
           type="submit"
+          className="w-full bg-teal-600 text-white py-2 px-4 rounded-md"
           disabled={isUploading}
-          className={`w-full py-2 rounded-md ${
-            isUploading ? "bg-gray-400" : "bg-teal-600 hover:bg-teal-700"
-          } text-white transition`}
         >
           {isUploading ? "Submitting..." : "Submit Claim"}
         </button>
       </form>
-      {formData.ipfsLink && (
-        <div className="mt-6 text-center">
-          <p>IPFS link:</p>
-          <a
-            href={formData.ipfsLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-teal-600 font-semibold"
-          >
-            {formData.ipfsLink}
-          </a>
-        </div>
-      )}
-      <button
-        onClick={handleCheckStatus}
-        className="mt-4 bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-md"
-      >
-        Check Claim Status
-      </button>
+
+      {/* Check Status */}
+      <div className="mt-6">
+        <button
+          onClick={handleCheckStatus}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md"
+        >
+          Check Claim Status
+        </button>
+      </div>
     </div>
   );
 };

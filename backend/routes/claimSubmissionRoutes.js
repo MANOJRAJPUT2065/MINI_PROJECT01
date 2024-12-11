@@ -389,8 +389,7 @@ router.post('/submit', async (req, res) => {
   try {
     const { doctorName, patientName, doctorId, patientId, diagnosis, treatment, claimAmount, reportCID } = req.body;
 
-    // Log the request body for debugging
-    console.log('Request body:', req.body);
+    console.log('Request body:', req.body); // Log the entire body to verify values
 
     // Validation
     if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
@@ -414,7 +413,7 @@ router.post('/submit', async (req, res) => {
     }
 
     // Interact with the smart contract to file the claim
-    const tx = await contract.fileClaim(
+    const tx = await contract.submitClaim(
       claimId, // Unique claim ID
       diagnosis,
       treatment,
@@ -437,7 +436,7 @@ router.post('/submit', async (req, res) => {
       doctorName,
       patientName,
       doctorId,
-      patientId,
+      patientId: formattedPatientId,
       amount: claimAmount,
       documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
     });
@@ -450,7 +449,5 @@ router.post('/submit', async (req, res) => {
     res.status(500).json({ error: 'Server error. Please try again later.' });
   }
 });
-
-
 
 export default router;
