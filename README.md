@@ -1,15 +1,15 @@
 # Healthcare System
 
-A comprehensive healthcare platform that allows users to manage their health records, insurers to handle claims and policies, and admins to oversee the entire system. It integrates features like user authentication, health insurance management, real-time chatbot support, and more.
+A comprehensive healthcare platform for managing health records, insurance claims, and policies. It provides a user-friendly experience for patients, insurers, and admins while ensuring security and privacy. The platform integrates advanced features like blockchain for insurance claims, real-time chatbot support, and a fully responsive UI.
 
 ## Table of Contents
 
 - [Project Overview](#project-overview)
-- [Features](#features)
+- [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
 - [Setup Instructions](#setup-instructions)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
+- [Backend Setup](#backend-setup)
+- [Frontend Setup](#frontend-setup)
 - [Hosting](#hosting)
 - [Usage](#usage)
 - [Contributing](#contributing)
@@ -19,17 +19,33 @@ A comprehensive healthcare platform that allows users to manage their health rec
 
 ## Project Overview
 
-This healthcare system is designed to be a one-stop solution for managing healthcare services. It provides an intuitive user interface for patients, healthcare professionals, and insurers with features such as personalized health insights, secure medical records, and claim management.
+This healthcare system is designed to streamline the management of healthcare services for patients, healthcare professionals, and insurers. It provides a secure, user-friendly platform where users can manage their health insurance claims, access their medical records, and interact with healthcare professionals. The platform uses blockchain technology to ensure transparency and security in the claims process.
 
 ### Key Features
 
-- **User Management**: Registration, login, and authentication for users, insurers, and admins.
-- **Health Insurance Management**: Users can view and manage health insurance plans, including claims and policies.
-- **Dashboards**: User-friendly dashboards for patients, insurers, and admins to access relevant information and analytics.
-- **Real-time Chatbot**: AI-powered chatbot to answer health-related queries.
-- **Admin Panel**: Management panel for admins to oversee users, insurance policies, and claims.
-- **Secure Health Data**: All data is encrypted to ensure privacy and security.
-- **Responsive UI**: Designed to work seamlessly across devices, including mobile and desktop.
+- **User Management**: 
+  - Registration, login, and authentication for patients, insurers, and admins using JWT and MetaMask for blockchain-based authentication.
+  
+- **Health Insurance Management**: 
+  - Users can view and manage their health insurance plans, submit claims, track claim status, and download reports.
+  
+- **Blockchain Integration**: 
+  - Blockchain-based insurance claims for added transparency and security.
+  - Ethereum integration to verify insurance claims, doctor verifications, and appointments.
+  
+- **Dashboards**:
+  - **Patient Dashboard**: Access personalized health information, claim statuses, recent activities, and more.
+  - **Insurer Dashboard**: Manage claims, policies, and view analytics for claim submissions.
+  - **Admin Dashboard**: Oversee users, insurance policies, claims, and system settings.
+
+- **Real-time Chatbot**: 
+  - AI-powered chatbot for answering health-related queries and assisting patients with basic medical information.
+
+- **Secure Health Data**: 
+  - End-to-end encryption to ensure data privacy and security for all users.
+
+- **Responsive UI**: 
+  - Designed to work seamlessly across devices, including mobile and desktop.
 
 ---
 
@@ -49,11 +65,13 @@ This healthcare system is designed to be a one-stop solution for managing health
 - MongoDB (NoSQL database)
 - Mongoose (ODM for MongoDB)
 - JSON Web Tokens (JWT) for authentication
+- Alchemy (for blockchain integration)
 
 ### **Additional Tools**
 
 - GitHub (for version control)
 - npm (for package management)
+- Ganache (for local blockchain testing)
 
 ---
 
@@ -62,16 +80,6 @@ This healthcare system is designed to be a one-stop solution for managing health
 ### Backend Setup
 
 1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/healthcare-system.git
-   cd healthcare-system/backend
-   ```
-2. **Install dependencies**:
-
 ```bash
-npm install
-```
-
-3. **Start the server**:
-
-   ```
+git clone https://github.com/your-username/healthcare-system.git
+cd healthcare-system/backend
