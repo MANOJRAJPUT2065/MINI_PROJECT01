@@ -449,6 +449,31 @@ router.post('/submit', async (req, res) => {
 });
 
 
+// Route to get the claim status by Claim ID
+router.get('/status/:claimId', async (req, res) => {
+  const { claimId } = req.params;
+  console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
+
+  try {
+    // Find the claim by its unique ID
+    const claim = await Claim.findOne({ claimId: claimId });
+
+    console.log('Claim found:', claim);  // Log the result of the query
+
+    if (!claim) {
+      return res.status(404).json({ error: "Claim not found." });
+    }
+
+    // Return the status of the claim
+    return res.status(200).json({ status: claim.status });
+  } catch (error) {
+    console.error("Error fetching claim status:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+
+
 export default router;
 
 
