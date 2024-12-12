@@ -1,17 +1,11 @@
-import express from 'express';
-import {ethers} from 'ethers';
-import Claim from '../models/Claim.js'; // Import the Claim model
+import { ethers } from 'ethers';
 
-const router = express.Router();
+// Initialize provider and signer
+const provider = new ethers.JsonRpcProvider('HTTP://127.0.0.1:7545'); // Replace with your provider (e.g., Alchemy/Infura or local Ganache)
+const signer = new ethers.Wallet('0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc9b3fba', provider);
 
-// Ethereum configuration
-const provider = new ethers.JsonRpcProvider('HTTP://127.0.0.1:7545'); // Ganache RPC URL
-const privateKey = '0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc9b3fba'; // Ganache account private key
-const wallet = new ethers.Wallet(privateKey, provider);
-
-// The deployed contract's new address
-const contractAddress = '0x52999617220cdDFCa7C7F319B6Fd7a286C084B12'; // Updated contract address
-const contractABI =[
+// Your smart contract ABI and address
+const contractABI = [
   {
     "inputs": [],
     "stateMutability": "nonpayable",
@@ -380,77 +374,46 @@ const contractABI =[
   }
 ];
 
-// Create a contract instance
-const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+// Contract address
+const contractAddress = '0xC86A787d03e98223880Fd72091108eAacc66988c';
 
-// Route: POST /api/claims/submit
-router.post('/submit', async (req, res) => {
+// Create contract instance
+const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+// Example: Calling a function on the smart contract (submitClaim)
+async function submitClaim(patientId, claimDetails) {
   try {
-    const { doctorName, patientName, doctorId, patientId, diagnosis, treatment, claimAmount, reportCID } = req.body;
-
-    console.log('Received request to submit claim:', req.body);
-
-    // Validation
-    if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
-      console.error('Validation error: Missing required fields');
-      return res.status(400).json({ error: 'All fields are required.' });
-    }
-
-    if (isNaN(claimAmount) || claimAmount <= 0) {
-      console.error('Validation error: Invalid claim amount');
-      return res.status(400).json({ error: 'Invalid claim amount.' });
-    }
-
-    if (!reportCID.startsWith('Qm')) {
-      console.error('Validation error: Invalid report CID');
-      return res.status(400).json({ error: 'Invalid report CID.' });
-    }
-
-    const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
-    console.log('Generated unique claim ID:', claimId);
-
-    // Smart contract interaction
-    const tx = await contract.submitClaim(
-      ethers.parseEther(claimAmount.toString()),
-      diagnosis,
-      doctorName,
-      patientName,
-      doctorId,
-      reportCID
-    );
-
-    console.log(`Transaction hash: ${tx.hash}`);
-    const receipt = await provider.waitForTransaction(tx.hash);
-
-    if (receipt.status !== 1) {
-      console.error('Transaction failed on the blockchain');
-      return res.status(500).json({ error: 'Blockchain transaction failed.' });
-    }
-
-    console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
-
-    const newClaim = new Claim({
-      doctorName,
-      patientName,
-      doctorId,
-      patientId,
-      amount: claimAmount,
-      documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
-    });
-
-    await newClaim.save();
-    console.log('Claim saved to the database successfully.');
-
-    res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
+    // Assuming claimDetails contains the necessary fields for the claim
+    const tx = await contract.submitClaim(patientId, claimDetails);
+    await tx.wait(); // Wait for the transaction to be mined
+    console.log('Claim submitted successfully');
   } catch (error) {
-    console.error('Error occurred while submitting the claim:', error);
-    res.status(500).json({ error: 'Server error. Please try again later.' });
+    console.error('Error submitting claim:', error);
   }
+}
+
+// Listen for ClaimSubmitted event
+contract.on('ClaimSubmitted', (claimId, claimant, amount, description, doctorName, patientName, doctorId, reportCID, isVerified, isApproved, isPaid) => {
+  console.log('ClaimSubmitted Event:', claimId, claimant, amount, description, doctorName, patientName, doctorId, reportCID, isVerified, isApproved, isPaid);
 });
 
+// Fetch claim details using claimId
+async function getClaimDetails(claimId) {
+  try {
+    const claim = await contract.getClaimDetails(claimId);
+    console.log('Claim Details:', claim);
+  } catch (err) {
+    console.log('Error fetching claim details:', err);
+  }
+}
 
-export default router;
-
-
-
-
+// Example usage
+submitClaim('patientId1', {
+  amount: 1000,
+  description: 'Claim for medical expenses',
+  doctorName: 'Dr. Smith',
+  patientName: 'John Doe',
+  doctorId: 1,
+  reportCID: 'Qm...CID' // Replace with actual CID
+});
+getClaimDetails(1); // Replace with actual claimId

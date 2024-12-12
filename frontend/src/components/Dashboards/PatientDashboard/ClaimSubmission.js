@@ -397,71 +397,146 @@ const ClaimSubmission = () => {
     return true;
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
+  //   if (!isMetaMaskConnected) {
+  //     alert("MetaMask is not connected. Please connect your MetaMask wallet.");
+  //     return;
+  //   }
+
+  //   setIsUploading(true);
+  //   let reportHash = "";
+
+  //   try {
+  //     reportHash = await uploadToIPFS(formData.report);
+
+  //     const ipfsLink = `https://ipfs.io/ipfs/${reportHash}`;
+  //     setFormData({ ...formData, ipfsLink });
+
+  //     await navigator.clipboard.writeText(ipfsLink);
+  //     alert("IPFS link copied to clipboard!");
+
+  //     const data = {
+  //       doctorName: formData.doctorName,
+  //       patientName: formData.patientName,
+  //       doctorId: formData.doctorId,
+  //       patientId: formData.patientId,
+  //       diagnosis: formData.diagnosis,
+  //       treatment: formData.treatment,
+  //       claimAmount: formData.claimAmount,
+  //       reportCID: reportHash,
+  //       walletAddress: walletAddress,  // Add wallet address to the claim data
+  //     };
+
+  //     const response = await fetch("http://localhost:5000/api/_claims/submit", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(data),
+  //     });
+
+  //     const result = await response.json();
+
+  //     if (response.ok) {
+  //       alert("Claim submitted successfully!");
+  //       setFormData({
+  //         doctorName: "",
+  //         patientName: "",
+  //         doctorId: "",
+  //         patientId: "",
+  //         diagnosis: "",
+  //         treatment: "",
+  //         claimAmount: "",
+  //         report: null,
+  //         ipfsLink: "",
+  //       });
+  //     } else {
+  //       alert(result.error || "Failed to submit claim.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error submitting claim:", error);
+  //     alert(error.message || "An error occurred. Please try again.");
+  //   } finally {
+  //     setIsUploading(false);
+  //   }
+  // };
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     if (!isMetaMaskConnected) {
-      alert("MetaMask is not connected. Please connect your MetaMask wallet.");
-      return;
+        alert("MetaMask is not connected. Please connect your MetaMask wallet.");
+        return;
     }
 
     setIsUploading(true);
     let reportHash = "";
 
     try {
-      reportHash = await uploadToIPFS(formData.report);
+        // Upload the report to IPFS
+        reportHash = await uploadToIPFS(formData.report);
 
-      const ipfsLink = `https://ipfs.io/ipfs/${reportHash}`;
-      setFormData({ ...formData, ipfsLink });
+        // Generate the IPFS link
+        const ipfsLink = `https://ipfs.io/ipfs/${reportHash}`;
+        setFormData({ ...formData, ipfsLink });
 
-      await navigator.clipboard.writeText(ipfsLink);
-      alert("IPFS link copied to clipboard!");
+        // Automatically copy the IPFS link to the clipboard
+        await navigator.clipboard.writeText(ipfsLink);
+        alert("IPFS link copied to clipboard!");
 
-      const data = {
-        doctorName: formData.doctorName,
-        patientName: formData.patientName,
-        doctorId: formData.doctorId,
-        patientId: formData.patientId,
-        diagnosis: formData.diagnosis,
-        treatment: formData.treatment,
-        claimAmount: formData.claimAmount,
-        reportCID: reportHash,
-        walletAddress: walletAddress,  // Add wallet address to the claim data
-      };
+        // Prepare form data to send to backend
+        const data = {
+            doctorName: formData.doctorName,
+            patientName: formData.patientName,
+            doctorId: formData.doctorId,
+            patientId: formData.patientId,
+            diagnosis: formData.diagnosis,
+            treatment: formData.treatment,
+            claimAmount: formData.claimAmount,
+            reportCID: reportHash, // Store the IPFS CID in the claim data
+            walletAddress: walletAddress,  // Include MetaMask wallet address
+        };
 
-      const response = await fetch("http://localhost:5000/api/_claims/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        alert("Claim submitted successfully!");
-        setFormData({
-          doctorName: "",
-          patientName: "",
-          doctorId: "",
-          patientId: "",
-          diagnosis: "",
-          treatment: "",
-          claimAmount: "",
-          report: null,
-          ipfsLink: "",
+        // Send the claim data to your backend
+        const response = await fetch("http://localhost:5000/api/_claims/submit", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
         });
-      } else {
-        alert(result.error || "Failed to submit claim.");
-      }
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("Claim submitted successfully!");
+            // Reset the form
+            setFormData({
+                doctorName: "",
+                patientName: "",
+                doctorId: "",
+                patientId: "",
+                diagnosis: "",
+                treatment: "",
+                claimAmount: "",
+                report: null,
+                ipfsLink: "",
+            });
+        } else {
+            alert(result.error || "Failed to submit claim.");
+        }
     } catch (error) {
-      console.error("Error submitting claim:", error);
-      alert(error.message || "An error occurred. Please try again.");
+        console.error("Error submitting claim:", error);
+        alert(error.message || "An error occurred. Please try again.");
     } finally {
-      setIsUploading(false);
+        setIsUploading(false); // Stop loading
     }
-  };
+};
+
+
 
   const handleCheckStatus = async () => {
     const claimId = prompt("Enter the Claim ID to check the status:");
