@@ -1,7 +1,7 @@
 import express from 'express';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers'; // Import ethers
 import Claim from '../models/Claim.js'; // Import the Claim model
-
+import ClaimSubmission from '../models/ClaimSubmission.js';
 const router = express.Router();
 
 // Ethereum configuration
@@ -383,7 +383,7 @@ const contractABI =[
 // Create a contract instance
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
-// Route: POST /api/claims/submit
+//TODO: Route: POST /api/claims/submit
 // router.post('/submit', async (req, res) => {
 //   try {
 //     const { doctorName, patientName, doctorId, patientId, diagnosis, treatment, claimAmount, reportCID } = req.body;
@@ -475,101 +475,190 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 
 
-// Route: POST /api/claims/submit
-router.post('/submit', async (req, res) => {
-  try {
-    const {
-      doctorName,
-      patientName,
-      doctorId,
-      patientId,
-      diagnosis,
-      treatment,
-      claimAmount,
-      reportCID,
-      walletAddress
-    } = req.body;
 
-    console.log('Received request to submit claim:', req.body);
 
-    // Validation
-    if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
-      console.error('Validation error: Missing required fields');
-      return res.status(400).json({ error: 'All fields are required.' });
+
+//TODO: Route: POST /api/claims/submit
+
+  // router.post('/submit', async (req, res) => {
+  //   try {
+  //     const {
+  //       doctorName,
+  //       patientName,
+  //       doctorId,
+  //       patientId,
+  //       diagnosis,
+  //       treatment,
+  //       claimAmount,
+  //       reportCID,
+  //       walletAddress,
+  //     } = req.body;
+  
+  //     console.log('Received request to submit claim:', req.body);
+  
+  //     // Validation
+  //     if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
+  //       console.error('Validation error: Missing required fields');
+  //       return res.status(400).json({ error: 'All fields are required.' });
+  //     }
+  
+  //     if (isNaN(claimAmount) || claimAmount <= 0) {
+  //       console.error('Validation error: Invalid claim amount');
+  //       return res.status(400).json({ error: 'Invalid claim amount.' });
+  //     }
+  
+  //     if (!reportCID.startsWith('Qm')) {
+  //       console.error('Validation error: Invalid report CID');
+  //       return res.status(400).json({ error: 'Invalid report CID.' });
+  //     }
+  
+  //     // Generate unique claim ID using patientId and timestamp
+  //     const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
+  //     console.log('Generated unique claim ID:', claimId);
+  
+  //     // Smart contract interaction (example, ensure your smart contract logic is correct)
+  //     const tx = await contract.submitClaim(
+  //       ethers.parseEther(claimAmount.toString()), // Ensure that claimAmount is converted properly
+  //       diagnosis,
+  //       doctorName,
+  //       patientName,
+  //       doctorId,
+  //       reportCID
+  //     );
+  
+  //     console.log(`Transaction hash: ${tx.hash}`);
+  //     const receipt = await provider.waitForTransaction(tx.hash);
+  
+  //     if (receipt.status !== 1) {
+  //       console.error('Transaction failed on the blockchain');
+  //       return res.status(500).json({ error: 'Blockchain transaction failed.' });
+  //     }
+  
+  //     console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
+  
+  //     // Ensure claimAmount is a number before saving it to the database
+  //     const claimAmountNumber = parseFloat(claimAmount);
+  //     if (isNaN(claimAmountNumber) || claimAmountNumber <= 0) {
+  //       console.error('Invalid claim amount for saving to database');
+  //       return res.status(400).json({ error: 'Invalid claim amount for saving.' });
+  //     }
+  
+  //     // Save the claim data in the database
+  //     const newClaim = new Claim({
+  //       claimId,
+  //       doctorName,
+  //       patientName,
+  //       doctorId,
+  //       patientId,
+  //       diagnosis,
+  //       treatment,
+  //       amount: claimAmountNumber,
+  //       reportCID,
+  //       walletAddress,
+  //       status: 'pending',
+  //       documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+  //     });
+      
+      
+  //     await newClaim.save();
+  //     console.log('Claim saved to the database successfully.');
+
+  
+  //     // Send the claimId in the response
+  //     res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
+  //   } catch (error) {
+  //     console.error('Error occurred while submitting the claim:', error);
+  //     res.status(500).json({ error: 'Server error. Please try again later.' });
+  //   }
+  // });
+  
+
+  // SUBMIT ROUTE 
+  router.post('/submit', async (req, res) => {
+    try {
+      const {
+        doctorName,
+        patientName,
+        doctorId,
+        patientId,
+        diagnosis,
+        treatment,
+        claimAmount,
+        reportCID,
+        walletAddress,
+      } = req.body;
+  
+      console.log('Received request to submit claim:', req.body);
+  
+      // Validation
+      if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
+        console.error('Validation error: Missing required fields');
+        return res.status(400).json({ error: 'All fields are required.' });
+      }
+  
+      if (isNaN(claimAmount) || claimAmount <= 0) {
+        console.error('Validation error: Invalid claim amount');
+        return res.status(400).json({ error: 'Invalid claim amount.' });
+      }
+  
+      if (!reportCID.startsWith('Qm')) {
+        console.error('Validation error: Invalid report CID');
+        return res.status(400).json({ error: 'Invalid report CID.' });
+      }
+  
+      const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
+      console.log('Generated unique claim ID:', claimId);
+  
+      const tx = await contract.submitClaim(
+        ethers.parseEther(claimAmount.toString()),
+        diagnosis,
+        doctorName,
+        patientName,
+        doctorId,
+        reportCID
+      );
+  
+      console.log(`Transaction hash: ${tx.hash}`);
+      const receipt = await provider.waitForTransaction(tx.hash);
+  
+      if (receipt.status !== 1) {
+        console.error('Transaction failed on the blockchain');
+        return res.status(500).json({ error: 'Blockchain transaction failed.' });
+      }
+  
+      console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
+  
+      const newClaim = new Claim({
+        claimId,
+        doctorName,
+        patientName,
+        doctorId,
+        patientId,
+        diagnosis,
+        treatment,
+        amount: parseFloat(claimAmount),
+        reportCID,
+        walletAddress,
+        status: 'pending',
+        documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+      });
+  
+      const savedClaim = await newClaim.save();
+      console.log('Claim saved to the database successfully:', savedClaim);
+  
+      res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
+    } catch (error) {
+      console.error('Error occurred while submitting the claim:', error);
+      res.status(500).json({ error: 'Server error. Please try again later.' });
     }
-
-    if (isNaN(claimAmount) || claimAmount <= 0) {
-      console.error('Validation error: Invalid claim amount');
-      return res.status(400).json({ error: 'Invalid claim amount.' });
-    }
-
-    if (!reportCID.startsWith('Qm')) {
-      console.error('Validation error: Invalid report CID');
-      return res.status(400).json({ error: 'Invalid report CID.' });
-    }
-
-    // Generate unique claim ID using patientId and timestamp
-    const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
-    console.log('Generated unique claim ID:', claimId);
-
-    // Smart contract interaction (example, ensure your smart contract logic is correct)
-    const tx = await contract.submitClaim(
-      ethers.parseEther(claimAmount.toString()), // Ensure that claimAmount is converted properly
-      diagnosis,
-      doctorName,
-      patientName,
-      doctorId,
-      reportCID
-    );
-
-    console.log(`Transaction hash: ${tx.hash}`);
-    const receipt = await provider.waitForTransaction(tx.hash);
-
-    if (receipt.status !== 1) {
-      console.error('Transaction failed on the blockchain');
-      return res.status(500).json({ error: 'Blockchain transaction failed.' });
-    }
-
-    console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
-
-    // Ensure claimAmount is a number before saving it to the database
-    const claimAmountNumber = parseFloat(claimAmount);
-    if (isNaN(claimAmountNumber) || claimAmountNumber <= 0) {
-      console.error('Invalid claim amount for saving to database');
-      return res.status(400).json({ error: 'Invalid claim amount for saving.' });
-    }
-
-    // Save the claim data in the database
-    const newClaim = new Claim({
-      claimId,  // Save the generated claimId
-      doctorName,
-      patientName,
-      doctorId,
-      patientId,
-      diagnosis,
-      treatment,
-      amount: claimAmountNumber, // Ensure amount is set correctly
-      reportCID,
-      walletAddress,
-      status: 'pending', // default status
-      documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
-    });
-
-    await newClaim.save();
-    console.log('Claim saved to the database successfully.');
-
-    // Send the claimId in the response
-    res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
-  } catch (error) {
-    console.error('Error occurred while submitting the claim:', error);
-    res.status(500).json({ error: 'Server error. Please try again later.' });
-  }
-});
+  });
+  
 
 
 
 
 // Route to get the claim status by Claim ID
+
 router.get('/status/:claimId', async (req, res) => {
   const { claimId } = req.params;
   console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
@@ -591,6 +680,132 @@ router.get('/status/:claimId', async (req, res) => {
     return res.status(500).json({ error: "Internal server error." });
   }
 });
+
+
+
+// TODO:
+
+
+
+// router.get('/claims/:patientId', async (req, res) => {
+//   try {
+//       const { patientId } = req.params;
+//       if (!patientId) {
+//           return res.status(400).json({ message: "Patient ID is missing" });
+//       }
+
+//       // Fetch claims for the patientId
+//       const claims = await Claim.find({ patientId });
+
+//       if (!claims.length) {
+//           return res.status(404).json({ message: 'No claims found for this patient' });
+//       }
+
+//       res.status(200).json(claims);
+//   } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ message: 'Error fetching claims' });
+//   }
+// });
+
+
+// Backend - Modified to fetch all claims
+
+
+
+// router.get('/claims', async (req, res) => {
+//   try {
+//     const claims = await Claim.find();  // Fetch all claims
+
+//     // Clean up the status field to remove extra whitespace/newlines
+//     claims.forEach(claim => {
+//       claim.status = claim.status.trim(); // Remove any extra whitespace/newline characters
+//     });
+
+//     if (!claims.length) {
+//       return res.status(404).json({ message: 'No claims found' });
+//     }
+
+//     // Map over claims to add the submission date and transaction hash (if it exists)
+//     const claimsWithDetails = claims.map(claim => ({
+//       claimId: claim.claimId,
+//       doctorName: claim.doctorName,
+//       patientName: claim.patientName,
+//       doctorId: claim.doctorId,
+//       patientId: claim.patientId,
+//       diagnosis: claim.diagnosis,
+//       treatment: claim.treatment,
+//       amount: claim.amount,
+//       status: claim.status,
+//       submissionDate: claim.createdAt ? claim.createdAt.toISOString() : 'N/A', // Ensure it’s correctly formatted
+//       transactionHash: claim.transactionHash || 'N/A',  // Return 'N/A' if transactionHash is not available
+//       documents: claim.documents,
+//     }));
+
+//     // Return claims with additional details
+//     res.status(200).json(claimsWithDetails);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Error fetching claims' });
+//   }
+// });
+
+
+router.get('/claims', async (req, res) => {
+  try {
+    const claims = await Claim.find();
+
+    if (!claims.length) {
+      console.log('No claims found in the database.');
+      return res.status(404).json({ message: 'No claims found' });
+    }
+
+    console.log('Fetched claims:', claims);
+
+    const claimsWithDetails = claims.map(claim => ({
+      claimId: claim.claimId,
+      doctorName: claim.doctorName,
+      patientName: claim.patientName,
+      doctorId: claim.doctorId,
+      patientId: claim.patientId,
+      diagnosis: claim.diagnosis,
+      treatment: claim.treatment,
+      amount: claim.amount,
+      status: claim.status.trim(),
+      submissionDate: claim.createdAt ? claim.createdAt.toISOString() : 'N/A',
+      transactionHash: claim.transactionHash || 'N/A',
+      documents: claim.documents,
+    }));
+
+    res.status(200).json(claimsWithDetails);
+  } catch (err) {
+    console.error('Error fetching claims:', err);
+    res.status(500).json({ message: 'Error fetching claims' });
+  }
+});
+
+
+// TODO: FOR DELETION
+
+router.delete('/claims/:claimId', async (req, res) => {
+  const { claimId } = req.params;
+  console.log('Claim ID from request:', claimId);
+
+  try {
+      const claims = await ClaimSubmission.find();
+      console.log('Claim IDs in database:', claims.map(c => c.claimId));
+
+      const deletedClaim = await ClaimSubmission.findOneAndDelete({ claimId });
+      if (!deletedClaim) {
+          return res.status(404).json({ error: 'Claim not found' });
+      }
+      res.status(200).json({ message: 'Claim deleted successfully', deletedClaim });
+  } catch (error) {
+      console.error('Error deleting claim:', error);
+      res.status(500).json({ error: 'Failed to delete claim' });
+  }
+});
+
 
 
 

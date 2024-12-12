@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
-const claimSchema = new mongoose.Schema(
+const claimSubmissionSchema = new mongoose.Schema(
   {
     claimId: {
       type: String,
@@ -66,19 +66,11 @@ const claimSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically add createdAt and updatedAt fields
   }
 );
 
-// Pre-save hook to ensure claimId is always set
-claimSchema.pre('save', function (next) {
-  if (!this.claimId) {
-    this.claimId = uuidv4(); // Generate a new UUID if claimId is not set
-  }
-  next();
-});
-
 // Export the model
-const Claim = mongoose.model('Claim', claimSchema);
+const ClaimSubmission = mongoose.model('ClaimSubmission', claimSubmissionSchema);
 
-export default Claim;
+export default ClaimSubmission;
