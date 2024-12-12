@@ -56,34 +56,33 @@
 // export default Claim;
 
 
-
 import mongoose from 'mongoose';
-
 const claimSchema = new mongoose.Schema(
   {
-    patientName: { type: String, required: true }, // Patient's name (required)
-    doctorName: { type: String }, // Doctor's name (optional)
-    patientId: { type: String, required: true }, // Ethereum address of the patient (required)
-    doctorId: { type: String, required: true }, // Ethereum address of the doctor (required)
-    amount: { type: Number, required: true, min: 0 }, // Claim amount (required and must be positive)
-    rejectionReason: { type: String, default: '' }, // Reason for rejection (optional)
-    rejectionDate: { type: Date }, // Date when the claim was rejected (optional)
+    claimId: { type: String, required: true, unique: true },  // Add claimId to schema
+    patientName: { type: String, required: true }, 
+    doctorName: { type: String },
+    patientId: { type: String, required: true },
+    doctorId: { type: String, required: true },
+    amount: { type: Number, required: true, min: 0 },
+    rejectionReason: { type: String, default: '' },
+    rejectionDate: { type: Date },
     status: {
       type: String,
       default: 'under review',
-      enum: ['under review', 'approved', 'rejected', 'pending'], // Restrict to specific status values
+      enum: ['under review', 'approved', 'rejected', 'pending'],
     },
-    disputeMessage: { type: String, default: '' }, // Message regarding disputes (optional)
-    notes: { type: String, default: '' }, // Additional notes (optional)
+    disputeMessage: { type: String, default: '' },
+    notes: { type: String, default: '' },
     documents: [
       {
-        fileUrl: { type: String, required: true }, // URL of the file (required)
-        ipfsHash: { type: String, required: true }, // IPFS hash for the file (required)
-        fileType: { type: String, required: true }, // File type, e.g., 'pdf', 'jpg' (required)
+        fileUrl: { type: String, required: true },
+        ipfsHash: { type: String, required: true },
+        fileType: { type: String, required: true },
       },
     ],
   },
-  { timestamps: true } // Automatically adds createdAt and updatedAt fields
+  { timestamps: true }
 );
 
 const Claim = mongoose.model('Claim', claimSchema);

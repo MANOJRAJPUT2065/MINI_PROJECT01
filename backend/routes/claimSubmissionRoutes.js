@@ -384,9 +384,111 @@ const contractABI =[
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 // Route: POST /api/claims/submit
+// router.post('/submit', async (req, res) => {
+//   try {
+//     const { doctorName, patientName, doctorId, patientId, diagnosis, treatment, claimAmount, reportCID } = req.body;
+
+//     console.log('Received request to submit claim:', req.body);
+
+//     // Validation
+//     if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID) {
+//       console.error('Validation error: Missing required fields');
+//       return res.status(400).json({ error: 'All fields are required.' });
+//     }
+
+//     if (isNaN(claimAmount) || claimAmount <= 0) {
+//       console.error('Validation error: Invalid claim amount');
+//       return res.status(400).json({ error: 'Invalid claim amount.' });
+//     }
+
+//     if (!reportCID.startsWith('Qm')) {
+//       console.error('Validation error: Invalid report CID');
+//       return res.status(400).json({ error: 'Invalid report CID.' });
+//     }
+
+//     const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
+//     console.log('Generated unique claim ID:', claimId);
+
+//     // Smart contract interaction
+//     const tx = await contract.submitClaim(
+//       ethers.parseEther(claimAmount.toString()),
+//       diagnosis,
+//       doctorName,
+//       patientName,
+//       doctorId,
+//       reportCID
+//     );
+
+//     console.log(`Transaction hash: ${tx.hash}`);
+//     const receipt = await provider.waitForTransaction(tx.hash);
+
+//     if (receipt.status !== 1) {
+//       console.error('Transaction failed on the blockchain');
+//       return res.status(500).json({ error: 'Blockchain transaction failed.' });
+//     }
+
+//     console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
+
+//     const newClaim = new Claim({
+//       doctorName,
+//       patientName,
+//       doctorId,
+//       patientId,
+//       amount: claimAmount,
+//       documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+//     });
+
+//     await newClaim.save();
+//     console.log('Claim saved to the database successfully.');
+
+//     res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
+//   } catch (error) {
+//     console.error('Error occurred while submitting the claim:', error);
+//     res.status(500).json({ error: 'Server error. Please try again later.' });
+//   }
+// });
+
+
+// // Route to get the claim status by Claim ID
+// router.get('/status/:claimId', async (req, res) => {
+//   const { claimId } = req.params;
+//   console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
+
+//   try {
+//     // Find the claim by its unique ID
+//     const claim = await Claim.findOne({ claimId: claimId });
+
+//     console.log('Claim found:', claim);  // Log the result of the query
+
+//     if (!claim) {
+//       return res.status(404).json({ error: "Claim not found." });
+//     }
+
+//     // Return the status of the claim
+//     return res.status(200).json({ status: claim.status });
+//   } catch (error) {
+//     console.error("Error fetching claim status:", error);
+//     return res.status(500).json({ error: "Internal server error." });
+//   }
+// });
+
+
+
+
+// Route: POST /api/claims/submit
 router.post('/submit', async (req, res) => {
   try {
-    const { doctorName, patientName, doctorId, patientId, diagnosis, treatment, claimAmount, reportCID } = req.body;
+    const {
+      doctorName,
+      patientName,
+      doctorId,
+      patientId,
+      diagnosis,
+      treatment,
+      claimAmount,
+      reportCID,
+      walletAddress
+    } = req.body;
 
     console.log('Received request to submit claim:', req.body);
 
@@ -406,12 +508,13 @@ router.post('/submit', async (req, res) => {
       return res.status(400).json({ error: 'Invalid report CID.' });
     }
 
+    // Generate unique claim ID using patientId and timestamp
     const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
     console.log('Generated unique claim ID:', claimId);
 
-    // Smart contract interaction
+    // Smart contract interaction (example, ensure your smart contract logic is correct)
     const tx = await contract.submitClaim(
-      ethers.parseEther(claimAmount.toString()),
+      ethers.parseEther(claimAmount.toString()), // Ensure that claimAmount is converted properly
       diagnosis,
       doctorName,
       patientName,
@@ -429,18 +532,33 @@ router.post('/submit', async (req, res) => {
 
     console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
 
+    // Ensure claimAmount is a number before saving it to the database
+    const claimAmountNumber = parseFloat(claimAmount);
+    if (isNaN(claimAmountNumber) || claimAmountNumber <= 0) {
+      console.error('Invalid claim amount for saving to database');
+      return res.status(400).json({ error: 'Invalid claim amount for saving.' });
+    }
+
+    // Save the claim data in the database
     const newClaim = new Claim({
+      claimId,  // Save the generated claimId
       doctorName,
       patientName,
       doctorId,
       patientId,
-      amount: claimAmount,
+      diagnosis,
+      treatment,
+      amount: claimAmountNumber, // Ensure amount is set correctly
+      reportCID,
+      walletAddress,
+      status: 'pending', // default status
       documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
     });
 
     await newClaim.save();
     console.log('Claim saved to the database successfully.');
 
+    // Send the claimId in the response
     res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
   } catch (error) {
     console.error('Error occurred while submitting the claim:', error);
@@ -449,16 +567,18 @@ router.post('/submit', async (req, res) => {
 });
 
 
+
+
 // Route to get the claim status by Claim ID
 router.get('/status/:claimId', async (req, res) => {
   const { claimId } = req.params;
-  console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
+  console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
 
   try {
     // Find the claim by its unique ID
     const claim = await Claim.findOne({ claimId: claimId });
 
-    console.log('Claim found:', claim);  // Log the result of the query
+    console.log('Claim found:', claim);  // Log the result of the query
 
     if (!claim) {
       return res.status(404).json({ error: "Claim not found." });
@@ -471,6 +591,7 @@ router.get('/status/:claimId', async (req, res) => {
     return res.status(500).json({ error: "Internal server error." });
   }
 });
+
 
 
 
