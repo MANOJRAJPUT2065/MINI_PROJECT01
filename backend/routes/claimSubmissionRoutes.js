@@ -10,7 +10,7 @@ const privateKey = '0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc
 const wallet = new ethers.Wallet(privateKey, provider);
 
 // The deployed contract's new address
-const contractAddress = '0x52999617220cdDFCa7C7F319B6Fd7a286C084B12'; // Updated contract address
+const contractAddress = '0x01da2365E87ff01BC9CF416ca5D4bDaa68bFeFd4'; // Updated contract address
 const contractABI =[
   {
     "inputs": [],

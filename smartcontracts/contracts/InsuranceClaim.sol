@@ -65,7 +65,7 @@ contract InsuranceClaim {
         emit ClaimSubmitted(claimCount, msg.sender, amount, description);
     }
 
-    // Verify a claim (fraud detection)
+    // Verify a claim (fraud detection) TODO: this is for small scale data
     function verifyClaim(uint256 claimId) public onlyAdmin {
         Claim storage claim = claims[claimId];
         require(claim.claimant != address(0), "Claim does not exist");
