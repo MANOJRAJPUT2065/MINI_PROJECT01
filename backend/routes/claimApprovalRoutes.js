@@ -15,22 +15,8 @@ const validateObjectId = (id, res, fieldName) => {
   }
 };
 
-// Route: Fetch all approved claims
-router.get('/claims/approve', async (req, res) => {
-  try {
-    const approvedClaims = await Claim.find({ status: 'approved' });
-    if (approvedClaims.length === 0) {
-      return res.status(404).json({ message: 'No approved claims found' });
-    }
-    res.status(200).json(approvedClaims);
-  } catch (error) {
-    console.error('Error fetching approved claims:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
 // Route: Approve a claim
-router.post('/claims/approve', async (req, res) => {
+router.post('/approve', async (req, res) => {
   console.log("Inside Approving claim... route");
   console.log("Incoming request body:", req.body);
 
@@ -64,7 +50,13 @@ router.post('/claims/approve', async (req, res) => {
     const approvalResult = await approveClaimOnBlockchain(claimId, approvalStatus);
 
     if (approvalResult.success) {
+      // Update the status in the database
       claim.status = approvalStatus;
+      claim.auditTrail.push({
+        action: `Claim ${approvalStatus}`,
+        timestamp: new Date().toLocaleString(),
+      });
+
       await claim.save();
 
       return res.status(200).json({ message: 'Claim successfully approved', claim });
@@ -74,50 +66,6 @@ router.post('/claims/approve', async (req, res) => {
 
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// Route: Fetch claim by ID
-router.get('/claims/:id', async (req, res) => {
-  try {
-    const claimId = validateObjectId(req.params.id, res, 'claimId');
-    const claim = await Claim.findById(claimId);
-    if (!claim) {
-      return res.status(404).json({ message: 'Claim not found' });
-    }
-    res.status(200).json(claim);
-  } catch (error) {
-    console.error('Error fetching claim by ID:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// Route: Fetch all claims for a doctor
-router.get('/claims/doctor/:doctorId', async (req, res) => {
-  try {
-    const doctorId = validateObjectId(req.params.doctorId, res, 'doctorId');
-    const claims = await Claim.find({ doctorId });
-    if (claims.length === 0) {
-      return res.status(404).json({ message: 'No claims found for the specified doctor' });
-    }
-    res.status(200).json(claims);
-  } catch (error) {
-    console.error('Error fetching claims for doctor:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
-
-// Route: Fetch all claims
-router.get('/claims', async (req, res) => {
-  try {
-    const claims = await Claim.find({});
-    if (claims.length === 0) {
-      return res.status(404).json({ message: 'No claims found' });
-    }
-    res.status(200).json(claims);
-  } catch (error) {
-    console.error('Error fetching claims:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

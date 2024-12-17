@@ -20,7 +20,8 @@
         import claimSubmissionRoutes from './routes/claimSubmissionRoutes.js'; // Import the claim submission route
         import overviewRoutes from './routes/overview.js';
         
-        import approvedClaimsRoutes from './routes/claimApprovalRoutes.js';
+        import approvedClaimsRoutes from './routes/claimApprovalRoutes.js'
+        // import approvedClaimsRoutes from './routes/claimApprovalRoutes.js';
         import pendingClaimsRoutes from './routes/pendingClaimRoute.js';
         dotenv.config();
 
