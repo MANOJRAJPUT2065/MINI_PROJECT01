@@ -47,7 +47,7 @@ const Sidebar = () => (
                 <Link to="/dashboard/doctor/system-settings" className="text-teal-600">System Settings</Link>
             </li>
             <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
-                <Link to="/dashboard/doctor/claim-submission" className="text-teal-600">Claim Submission</Link>
+                <Link to="/dashboard/doctor/claim-submission" className="text-teal-600">Review</Link>
             </li>
             <li className="hover:shadow-lg hover:bg-teal-100 p-4 rounded-lg">
                 <Link to="/dashboard/doctor/track-claim-status" className="text-teal-600">Track Claim Status</Link>

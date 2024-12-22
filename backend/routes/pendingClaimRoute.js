@@ -5,7 +5,7 @@
   import fs from 'fs'; // For file system operations
   import path from 'path'; // Path operations
   import dotenv from 'dotenv'; // To load environment variables
-
+  import axios from 'axios';
   dotenv.config();
 
   const router = express.Router();
@@ -18,8 +18,8 @@
   const wallet = new ethers.Wallet(privateKey, provider);
 
   // The deployed contract's address and ABI (you must define the ABI here)
-  const contractAddress = '0xF57d4C739495d44DE7bb176c75737E8be76327c8'; // Updated contract address
-  const contractABI =[
+  const contractAddress = '0xC1fd7B8Df6230883b39770cc853025b259E8E411'; // Updated contract address
+  const contractABI = [
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -160,6 +160,25 @@
         }
       ],
       "name": "ClaimVerified",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "claimId",
+          "type": "uint256"
+        }
+      ],
+      "name": "DoctorNotified",
       "type": "event"
     },
     {
@@ -325,6 +344,11 @@
           "internalType": "uint256",
           "name": "timestamp",
           "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -413,6 +437,11 @@
               "internalType": "uint256",
               "name": "timestamp",
               "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "doctor",
+              "type": "address"
             }
           ],
           "internalType": "struct InsuranceClaim.Claim",
@@ -548,6 +577,25 @@
       "name": "submitClaim",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "reportCID",
+          "type": "string"
+        }
+      ],
+      "name": "validateReportCID",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
       "type": "function"
     },
     {
@@ -758,6 +806,171 @@
       }
   });
 
+
+
+
+ 
+  router.post('/review/:claimId', async (req, res) => {
+    const { claimId } = req.params;
+    const { status, doctorReview } = req.body;
+  
+    // Log the incoming data to verify
+    console.log("Received status:", status);  // Log status
+    console.log("Received doctorReview:", doctorReview);  // Log doctorReview
+  
+    try {
+      // Fetch the claim from the database, populating the documents
+      const claim = await Claim.findOne({ claimId }).populate('documents');
+  
+      // Check if claim exists
+      if (!claim) {
+        return res.status(404).json({ error: 'Claim not found.' });
+      }
+  
+      // Check if the claim has already been reviewed
+      if (claim.status !== 'pending') {
+        return res.status(400).json({ error: 'Claim has already been reviewed.' });
+      }
+  
+      // Ensure a rejection reason is provided if the claim is rejected
+      if (status === 'reject' && !doctorReview) {
+        return res.status(400).json({ error: 'Please provide a rejection reason.' });
+      }
+  
+      // Update the claim status and doctor review
+      if (status === 'approve') {
+        claim.status = 'approved';
+        claim.doctorReview = doctorReview || '';
+      } else if (status === 'reject') {
+        claim.status = 'rejected';
+        claim.doctorReview = doctorReview;
+      } else {
+        return res.status(400).json({ error: 'Invalid status. Use "approve" or "reject".' });
+      }
+  
+      // Add IPFS URL and file data for each document
+      const documentData = await Promise.all(
+        claim.documents.map(async (doc) => {
+          const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${doc.ipfsHash}`;
+          try {
+            // Fetch the file data from IPFS
+            const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
+            return {
+              ...doc.toObject(),
+              fileData: response.data.toString('base64'), // Convert file data to base64
+              fileUrl: ipfsUrl, // IPFS URL for the document
+              ipfsHash: doc.ipfsHash // The IPFS hash
+            };
+          } catch (error) {
+            console.error('Error fetching document from IPFS:', error);
+            // Return the document with the URL and hash in case of error
+            return {
+              ...doc.toObject(),
+              fileUrl: ipfsUrl,
+              ipfsHash: doc.ipfsHash
+            };
+          }
+        })
+      );
+  
+      // Save the claim with updated status and review
+      await claim.save();
+  
+      // Return the response with status, claim data, and documents
+      res.status(200).json({
+        message: `Claim ${status === 'approve' ? 'approved' : 'rejected'} successfully.`,
+        claim,
+        documents: documentData
+      });
+    } catch (error) {
+      console.error('Error occurred while reviewing the claim:', error);
+      res.status(500).json({ error: 'Error occurred while reviewing the claim.' });
+    }
+  });
+  
+  
+  
+  // router.post('/approve', async (req, res) => {
+  //   console.log("Inside approved claim");
+  //   console.log("Inside Approving claim... route");
+  //   console.log("Incoming request body:", req.body);
+  
+  //   const { claimId, doctorId, approvalStatus } = req.body;
+  //   if (!claimId || !doctorId || !approvalStatus) {
+  //     return res.status(400).json({ message: 'Missing required fields' });
+  //   }
+  
+  //   try {
+  //     // Step 1: Validate the claimId and doctorId
+  //     const claimObjectId = validateObjectId(claimId, res, 'claimId');
+  //     const doctorObjectId = validateObjectId(doctorId, res, 'doctorId');
+  
+  //     // Step 2: Find the claim
+  //     const claim = await Claim.findById(claimObjectId);
+  //     if (!claim) {
+  //       return res.status(404).json({ message: 'Claim not found' });
+  //     }
+  
+  //     // Step 3: Validate the doctor’s authorization
+  //     if (!claim.doctorId.equals(doctorObjectId)) {
+  //       return res.status(403).json({ message: 'Unauthorized to approve this claim' });
+  //     }
+  
+  //     // Step 4: Check if the claim is pending
+  //     if (claim.status !== 'pending') {
+  //       return res.status(400).json({ message: 'Claim is not pending, cannot approve' });
+  //     }
+  
+  //     // Step 5: Interact with the blockchain (Approval on blockchain)
+  //     const approvalResult = await approveClaimOnBlockchain(claimId, approvalStatus);
+  
+  //     if (approvalResult.success) {
+  //       // Step 6: Update the claim status to 'verified' if the approval was successful
+  //       claim.status = 'verified'; // Change state to verified
+  //       claim.auditTrail.push({
+  //         action: `Claim ${approvalStatus} and verified`,
+  //         timestamp: new Date().toLocaleString(),
+  //       });
+  
+  //       await claim.save();
+  
+  //       return res.status(200).json({ message: 'Claim successfully approved and verified', claim });
+  //     } else {
+  //       return res.status(400).json({ message: 'Error approving the claim on blockchain' });
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     res.status(500).json({ message: 'Internal server error' });
+  //   }
+  // });
+  
+  
+
+  // router.get('/approved', async (req, res) => {
+  //   console.log("Fetching approved claims...");
+  
+  //   try {
+  //     // Step 1: Fetch claims with status 'verified'
+  //     const approvedClaims = await Claim.find({ status: 'verified' });
+  
+  //     if (approvedClaims.length === 0) {
+  //       return res.status(404).json({ message: 'No approved claims found' });
+  //     }
+  
+  //     // Step 2: Return the approved claims
+  //     return res.status(200).json({ approvedClaims });
+  //   } catch (error) {
+  //     console.error('Error fetching approved claims:', error);
+  //     return res.status(500).json({ message: 'Internal server error' });
+  //   }
+  // });
+   
+  
+  
+  
+
+
+  
 
 
   export default router;

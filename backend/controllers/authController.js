@@ -6,44 +6,88 @@ import nodemailer from 'nodemailer';
 import { validationResult } from 'express-validator';
 
 
+// export const registerUser = async (req, res) => {
+//     const { name, email, password, confirmPassword, role, blockchainWallet } = req.body;
+
+//     // Check if passwords match
+//     if (password !== confirmPassword) {
+//         return res.status(400).json({ message: 'Passwords do not match' });
+//     }
+
+//     // Email validation (checks if it ends with @gmail.com)
+//     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+//     if (!emailRegex.test(email)) {
+//         return res.status(400).json({ message: 'Please enter a valid Gmail address (ending with @gmail.com)' });
+//     }
+
+//     // Check if user already exists
+//     const userExists = await User.findOne({ email });
+//     if (userExists) {
+//         return res.status(400).json({ message: 'User already exists' });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create new user
+//     const user = new User({
+//         name,
+//         email,
+//         password: hashedPassword,
+//         role,
+//         blockchainWallet,
+//     });
+
+//     // Save the user
+//     const savedUser = await user.save();
+//     res.status(201).json({ message: 'User registered successfully', user: savedUser });
+// };
+
+
+
 export const registerUser = async (req, res) => {
-    const { name, email, password, confirmPassword, role, blockchainWallet } = req.body;
-
-    // Check if passwords match
-    if (password !== confirmPassword) {
-        return res.status(400).json({ message: 'Passwords do not match' });
-    }
-
-    // Email validation (checks if it ends with @gmail.com)
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-    if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: 'Please enter a valid Gmail address (ending with @gmail.com)' });
-    }
-
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-        return res.status(400).json({ message: 'User already exists' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user
-    const user = new User({
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        blockchainWallet,
-    });
-
-    // Save the user
-    const savedUser = await user.save();
-    res.status(201).json({ message: 'User registered successfully', user: savedUser });
-};
-
-
+        const { name, email, password, confirmPassword, role, blockchainWallet } = req.body;
+    
+        // Check if passwords match
+        if (password !== confirmPassword) {
+            return res.status(400).json({ message: 'Passwords do not match' });
+        }
+    
+        // Email validation (checks if it ends with @gmail.com)
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ message: 'Please enter a valid Gmail address (ending with @gmail.com)' });
+        }
+    
+        // Blockchain wallet validation (ensures it's exactly 16 digits)
+        const walletRegex = /^\d{12}$/;
+        if (blockchainWallet && !walletRegex.test(blockchainWallet)) {
+            return res.status(400).json({ message: 'Invalid Adhaar' });
+        }
+    
+        // Check if user already exists
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
+    
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+    
+        // Create new user
+        const user = new User({
+            name,
+            email,
+            password: hashedPassword,
+            role,
+            blockchainWallet,
+        });
+    
+        // Save the user
+        const savedUser = await user.save();
+        res.status(201).json({ message: 'User registered successfully', user: savedUser });
+    };
+    
 
 
 export const loginUser = async (req, res) => {
@@ -165,3 +209,4 @@ export const logOutUser = async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+

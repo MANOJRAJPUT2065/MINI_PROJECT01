@@ -58,12 +58,13 @@ import ClaimStatusTracker from './components/DoctorPages/ClaimStatusTracker';
 import SmartContractInteraction from './components/DoctorPages/SmartContractInteraction';
 import ActivityLog from './components/DoctorPages/ActivityLog.js';
 import SecureCommunication from './components/DoctorPages/SecureCommunication';
-
+import DoctorReview from './components/DoctorPages/DoctorReview.js';
 
 
 
 // USER DASHBOARD COMPONENTS
 import ClaimSubmission from './components/Dashboards/PatientDashboard/ClaimSubmission';
+// import ClaimReview from './components/Dashboards/PatientDashboard/ClaimReview';
 import Settings from './components/Dashboards/PatientDashboard/Settings.js';
 import TrackClaims from './components/Dashboards/PatientDashboard/TrackClaims.js';
 import PatientReports from './components/Dashboards/PatientDashboard/PatientReports.js';
@@ -115,7 +116,7 @@ function App() {
                 <Route path="/dashboard/doctor/view-reports" element={<ViewReports />} />
                 <Route path="/dashboard/doctor/view-compliance" element={<ViewCompliance />} />
                 <Route path="/dashboard/doctor/system-settings" element={<SystemSettings />} />
-                <Route path="/dashboard/doctor/claim-submission" element={<ClaimSubmission />} />
+                <Route path="/dashboard/doctor/claim-submission" element={<DoctorReview />} />
                 <Route path="/dashboard/doctor/track-claim-status" element={<ClaimStatusTracker />} />
                 <Route path="/dashboard/doctor/smart-contract-interaction" element={<SmartContractInteraction />} />
                 <Route path="/dashboard/doctor/activity-log" element={<ActivityLog />} />

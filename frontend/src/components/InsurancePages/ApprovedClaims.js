@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-// Example fallback data for approved claims
+const API_URL = 'http://localhost:5000/api'; // Use base URL for consistency
+
 const initialApprovedClaims = [
   {
     id: 1,
@@ -31,8 +32,6 @@ const initialApprovedClaims = [
   },
 ];
 
-const API_URL = 'http://localhost:5000/api/';
-
 const ApprovedClaims = () => {
   const [approvedClaims, setApprovedClaims] = useState([]);
   const [blockchainInfo, setBlockchainInfo] = useState({});
@@ -41,7 +40,7 @@ const ApprovedClaims = () => {
   useEffect(() => {
     const fetchClaims = async () => {
       try {
-        const response = await axios.get(`${API_URL}claims/approve`);
+        const response = await axios.get('http://localhost:5000/api/claims/pending/approved');
         if (response.data && response.data.length > 0) {
           setApprovedClaims(response.data); // Set the API data if available
         } else {
@@ -59,9 +58,10 @@ const ApprovedClaims = () => {
   // Handle payment processing action
   const handlePaymentAction = async (claimId, approvalStatus) => {
     try {
-      const response = await axios.post(`${API_URL}claims/approve`, {
+      const response = await axios.post('http://localhost:5000/api/claims/pending/approve', {
         claimId,
         approvalStatus,
+        doctorId: '12345', // Replace with actual doctorId
       });
 
       if (response.status === 200 && response.data.claim) {

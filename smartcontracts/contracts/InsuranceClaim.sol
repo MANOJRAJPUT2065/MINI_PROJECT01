@@ -11,6 +11,7 @@ contract InsuranceClaim {
         ClaimDetails details;
         ClaimStatus status;
         uint256 timestamp;
+        address doctor;  // Address of the doctor who needs to verify the claim
     }
 
     // Struct to represent claim details when submitting a new claim
@@ -54,6 +55,7 @@ contract InsuranceClaim {
     event ClaimApproved(uint256 indexed claimId);
     event ClaimRejected(uint256 indexed claimId, string reason);
     event ClaimPaid(uint256 indexed claimId);
+    event DoctorNotified(address indexed doctor, uint256 indexed claimId); // Notify doctor about pending claim verification
 
     // Modifier to restrict access to admin functions
     modifier onlyAdmin() {
@@ -94,15 +96,19 @@ contract InsuranceClaim {
             reportCID: reportCID
         });
 
+        // Assign a doctor for verification
+        address doctor = msg.sender; // In your app, the doctor could be selected via a UI or passed as an argument.
+
         // Creating claim and adding to claims mapping
         claims[claimId] = Claim(
-            claimId,               // Using backend-generated claimId
+            claimId,                   // Using backend-generated claimId
             msg.sender,
             amount,
             description,
             details,
             ClaimStatus.Pending,
-            block.timestamp
+            block.timestamp,
+            doctor
         );
 
         // Storing claim id for the claimant for easy access
@@ -124,6 +130,9 @@ contract InsuranceClaim {
             details.reportCID, 
             block.timestamp
         );
+
+        // Notify the doctor about pending verification
+        emit DoctorNotified(doctor, claimId);
     }
 
     // Function to get the details of a specific claim by claimId
@@ -133,10 +142,10 @@ contract InsuranceClaim {
         return claim;
     }
 
-    // Function to verify a claim (only admin can verify claims)
-    function verifyClaim(uint256 claimId) public onlyAdmin {
+    // Function for the doctor to verify a claim
+    function verifyClaim(uint256 claimId) public {
         Claim storage claim = claims[claimId];
-        require(claim.claimant != address(0), "Claim does not exist");
+        require(claim.doctor == msg.sender, "Only the assigned doctor can verify the claim");
         require(claim.status == ClaimStatus.Pending, "Claim is not pending");
 
         claim.status = ClaimStatus.Verified;
@@ -191,4 +200,11 @@ contract InsuranceClaim {
 
     // Fallback function to accept Ether sent to the contract
     receive() external payable {}
+
+    // Function to validate the reportCID (example, validation logic could be off-chain)
+    function validateReportCID(string memory reportCID) public pure returns (bool) {
+        // Example: A simple check to ensure the reportCID is non-empty or some other condition
+        // You could integrate an off-chain oracle here to check the CID validity
+        return bytes(reportCID).length > 0;
+    }
 }
