@@ -3,3 +3,13 @@ node_modules/
  
 # Local Netlify folder
 .netlify
+# Python-related files
+python/venv/
+python/__pycache__/
+python/*.py[cod]
+python/.env
+python/*.log
+python/*.csv
+python/*.xlsx
+python/*.h5
+python/*.pkl

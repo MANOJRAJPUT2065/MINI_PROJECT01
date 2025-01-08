@@ -146,39 +146,43 @@ const TrackClaims = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+  
+
     useEffect(() => {
-        // Fetch all claims data from the backend API
-        const fetchClaims = async () => {
+        // Fetch pending claims data from the backend API
+        const fetchPendingClaims = async () => {
             try {
-                const response = await fetch("http://localhost:5000/api/_claims/claims");
+                const response = await fetch("http://localhost:5000/api/claims/pending/pending");
                 if (!response.ok) {
-                    throw new Error("Error fetching claims data");
+                    throw new Error("Error fetching pending claims data");
                 }
                 const data = await response.json();
-
-                // Ensure all claims are included
-                const allClaims = data.map(claim => ({
+    
+                // Ensure all claims are included from the proper field
+                const pendingClaims = data.pendingClaims.map(claim => ({
                     claimId: claim.claimId || 'N/A',
-                    policyNumber: claim.policyNumber || 'N/A',
-                    status: claim.status || 'N/A',
+                    policyNumber: 'N/A', // Set as 'N/A' since it's not provided in the backend
+                    status: claim.status || 'Pending',
                     submissionDate: claim.submissionDate || 'N/A',
                     transactionHash: claim.transactionHash || 'N/A',
                 }));
-
-                setClaims(allClaims);
+    
+                setClaims(pendingClaims);
                 setLoading(false);
             } catch (err) {
-                setError("Error fetching claims data");
+                setError("Error fetching pending claims data in Track Claims frontend");
                 setLoading(false);
             }
         };
-
-        fetchClaims();
+    
+        fetchPendingClaims();
     }, []);
+    
+    
 
     // Handle loading and error states
     if (loading) {
-        return <div className="p-6 bg-white rounded-lg shadow-md text-center">Loading claims...</div>;
+        return <div className="p-6 bg-white rounded-lg shadow-md text-center">Loading claims... </div>;
     }
 
     if (error) {
@@ -206,6 +210,7 @@ const TrackClaims = () => {
       
 
     return (
+      
         <div className="p-6 bg-white rounded-lg shadow-md">
             <h1 className="text-2xl font-bold text-teal-600">Track Claim Status</h1>
             <p className="mt-4 text-gray-700">View and track the status of your insurance claims here.</p>
@@ -249,6 +254,7 @@ const TrackClaims = () => {
                     </tbody>
                 </table>
             </div>
+
         </div>
     );
 };

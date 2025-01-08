@@ -18,7 +18,7 @@
   const wallet = new ethers.Wallet(privateKey, provider);
 
   // The deployed contract's address and ABI (you must define the ABI here)
-  const contractAddress = '0xC1fd7B8Df6230883b39770cc853025b259E8E411'; // Updated contract address
+  const contractAddress = '0x0AD00B57C3A5Eb1B1AB4d07A9BA7E2E904BF9946'; // Updated contract address
   const contractABI = [
     {
       "inputs": [],
@@ -675,7 +675,7 @@
  
  
   router.post('/validate/:claimId', async (req, res) => {
-    console.log("Inside validations");
+    console.log("Inside validations bhai");
     const { claimId } = req.params;
     console.log("Received request to validate claim with ID:", claimId);
   
@@ -809,86 +809,286 @@
 
 
 
- 
-  router.post('/review/:claimId', async (req, res) => {
-    const { claimId } = req.params;
-    const { status, doctorReview } = req.body;
+// TODO: 
+  // router.post('/review/:claimId', async (req, res) => {
+  //   const { claimId } = req.params;
+  //   const { status, doctorReview } = req.body;
   
-    // Log the incoming data to verify
-    console.log("Received status:", status);  // Log status
-    console.log("Received doctorReview:", doctorReview);  // Log doctorReview
+  //   // Log the incoming data to verify
+  //   console.log("Received status:", status);  // Log status
+  //   console.log("Received doctorReview:", doctorReview);  // Log doctorReview
   
-    try {
+  //   try {
+  //     // Fetch the claim from the database, populating the documents
+  //     const claim = await Claim.findOne({ claimId }).populate('documents');
+  
+  //     // Check if claim exists
+  //     if (!claim) {
+  //       return res.status(404).json({ error: 'Claim not found.' });
+  //     }
+  
+  //     // Check if the claim has already been reviewed
+  //     if (claim.status !== 'pending') {
+  //       return res.status(400).json({ error: 'Claim has already been reviewed.' });
+  //     }
+  
+  //     // Ensure a rejection reason is provided if the claim is rejected
+  //     if (status === 'reject' && !doctorReview) {
+  //       return res.status(400).json({ error: 'Please provide a rejection reason.' });
+  //     }
+  
+  //     // Update the claim status and doctor review
+  //     if (status === 'approve') {
+  //       claim.status = 'approved';
+  //       claim.doctorReview = doctorReview || '';
+  //     } else if (status === 'reject') {
+  //       claim.status = 'rejected';
+  //       claim.doctorReview = doctorReview;
+  //     } else {
+  //       return res.status(400).json({ error: 'Invalid status. Use "approve" or "reject".' });
+  //     }
+  
+  //     // Add IPFS URL and file data for each document
+  //     const documentData = await Promise.all(
+  //       claim.documents.map(async (doc) => {
+  //         const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${doc.ipfsHash}`;
+  //         try {
+  //           // Fetch the file data from IPFS
+  //           const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
+  //           return {
+  //             ...doc.toObject(),
+  //             fileData: response.data.toString('base64'), // Convert file data to base64
+  //             fileUrl: ipfsUrl, // IPFS URL for the document
+  //             ipfsHash: doc.ipfsHash // The IPFS hash
+  //           };
+  //         } catch (error) {
+  //           console.error('Error fetching document from IPFS:', error);
+  //           // Return the document with the URL and hash in case of error
+  //           return {
+  //             ...doc.toObject(),
+  //             fileUrl: ipfsUrl,
+  //             ipfsHash: doc.ipfsHash
+  //           };
+  //         }
+  //       })
+  //     );
+  
+  //     // Save the claim with updated status and review
+  //     await claim.save();
+  
+  //     // Return the response with status, claim data, and documents
+  //     res.status(200).json({
+  //       message: `Claim ${status === 'approve' ? 'approved' : 'rejected'} successfully.`,
+  //       claim,
+  //       documents: documentData
+  //     });
+  //   } catch (error) {
+  //     console.error('Error occurred while reviewing the claim:', error);
+  //     res.status(500).json({ error: 'Error occurred while reviewing the claim.' });
+  //   }
+  // });
+  
+  
+//   router.post('/review/:claimId', async (req, res) => {
+//     const { claimId } = req.params;
+//     const { status, doctorReview } = req.body;
+
+//     // Log the incoming data to verify
+//     console.log("Received status:", status);  // Log status
+//     console.log("Received doctorReview:", doctorReview);  // Log doctorReview
+
+//     try {
+//         // Fetch the claim from the database, populating the documents
+//         const claim = await Claim.findOne({ claimId }).populate('documents');
+
+//         // Check if claim exists
+//         if (!claim) {
+//             return res.status(404).json({ error: 'Claim not found.' });
+//         }
+
+//         // Check if the claim has already been reviewed
+//         if (claim.status !== 'pending') {
+//             return res.status(400).json({ error: 'Claim has already been reviewed.' });
+//         }
+
+//         // Fraud detection logic: call the fraud detection model API
+//         const claimDataForFraudDetection = {
+//             claimAmount: claim.claimAmount,
+//             diagnosis: claim.diagnosis,
+//             treatment: claim.treatment,
+//             // Add other necessary data points for fraud detection here
+//         };
+
+//         // Call the fraud detection API
+//         const fraudResponse = await axios.post('http://127.0.0.1:5001/predict', claimDataForFraudDetection);
+        
+//         // Check the response for fraud detection
+//         const fraudDetected = fraudResponse.data.fraud; // Assuming the response contains a 'fraud' key
+
+//         if (fraudDetected) {
+//             // Automatically reject the claim if fraud is detected
+//             claim.status = 'rejected';
+//             claim.doctorReview = 'Claim is fraudulent and rejected automatically.';
+//             await claim.save();
+//             return res.status(200).json({
+//                 message: 'Claim rejected due to fraud detection.',
+//                 claim,
+//             });
+//         }
+
+//         // If the claim is not fraudulent, proceed with normal review
+//         if (status === 'approve') {
+//             claim.status = 'approved';
+//             claim.doctorReview = doctorReview || '';
+//         } else if (status === 'reject') {
+//             claim.status = 'rejected';
+//             claim.doctorReview = doctorReview;
+//         } else {
+//             return res.status(400).json({ error: 'Invalid status. Use "approve" or "reject".' });
+//         }
+
+//         // Add IPFS URL and file data for each document
+//         const documentData = await Promise.all(
+//             claim.documents.map(async (doc) => {
+//                 const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${doc.ipfsHash}`;
+//                 try {
+//                     // Fetch the file data from IPFS
+//                     const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
+//                     return {
+//                         ...doc.toObject(),
+//                         fileData: response.data.toString('base64'), // Convert file data to base64
+//                         fileUrl: ipfsUrl, // IPFS URL for the document
+//                         ipfsHash: doc.ipfsHash // The IPFS hash
+//                     };
+//                 } catch (error) {
+//                     console.error('Error fetching document from IPFS:', error);
+//                     // Return the document with the URL and hash in case of error
+//                     return {
+//                         ...doc.toObject(),
+//                         fileUrl: ipfsUrl,
+//                         ipfsHash: doc.ipfsHash
+//                     };
+//                 }
+//             })
+//         );
+
+//         // Save the claim with updated status and review
+//         await claim.save();
+
+//         // Return the response with status, claim data, and documents
+//         res.status(200).json({
+//             message: `Claim ${status === 'approve' ? 'approved' : 'rejected'} successfully.`,
+//             claim,
+//             documents: documentData
+//         });
+//     } catch (error) {
+//         console.error('Error occurred while reviewing the claim:', error);
+//         res.status(500).json({ error: 'Error occurred while reviewing the claim.' });
+//     }
+// });
+
+router.post('/review/:claimId', async (req, res) => {
+  const { claimId } = req.params;
+  const { status, doctorReview } = req.body;
+
+  // Log the incoming data to verify
+  console.log("Received status:", status);  // Log status
+  console.log("Received doctorReview:", doctorReview);  // Log doctorReview
+
+  try {
       // Fetch the claim from the database, populating the documents
       const claim = await Claim.findOne({ claimId }).populate('documents');
-  
+
       // Check if claim exists
       if (!claim) {
-        return res.status(404).json({ error: 'Claim not found.' });
+          return res.status(404).json({ error: 'Claim not found.' });
       }
-  
+
       // Check if the claim has already been reviewed
       if (claim.status !== 'pending') {
-        return res.status(400).json({ error: 'Claim has already been reviewed.' });
+          return res.status(400).json({ error: 'Claim has already been reviewed.' });
       }
-  
-      // Ensure a rejection reason is provided if the claim is rejected
-      if (status === 'reject' && !doctorReview) {
-        return res.status(400).json({ error: 'Please provide a rejection reason.' });
+
+      // Fraud detection logic: call the fraud detection model API
+      const claimDataForFraudDetection = {
+          claimAmount: claim.claimAmount,
+          diagnosis: claim.diagnosis,
+          treatment: claim.treatment,
+          // Add other necessary data points for fraud detection here
+      };
+
+      // Call the fraud detection API
+      const fraudResponse = await axios.post('http://127.0.0.1:5001/predict', claimDataForFraudDetection);
+      
+      // Check the response for fraud detection
+      const fraudDetected = fraudResponse.data.fraud; // Assuming the response contains a 'fraud' key
+      let rejectionReason = '';
+
+      if (fraudDetected) {
+          // Automatically reject the claim if fraud is detected
+          claim.status = 'rejected';
+          rejectionReason = 'Claim is fraudulent and rejected automatically based on fraud detection analysis.';
+          claim.doctorReview = rejectionReason;
+          await claim.save();
+          return res.status(200).json({
+              message: 'Claim rejected due to fraud detection.',
+              claim,
+              rejectionReason
+          });
       }
-  
-      // Update the claim status and doctor review
+
+      // If the claim is not fraudulent, proceed with normal review
       if (status === 'approve') {
-        claim.status = 'approved';
-        claim.doctorReview = doctorReview || '';
+          claim.status = 'approved';
+          claim.doctorReview = doctorReview || '';
       } else if (status === 'reject') {
-        claim.status = 'rejected';
-        claim.doctorReview = doctorReview;
+          claim.status = 'rejected';
+          claim.doctorReview = doctorReview || 'Claim has been rejected by the doctor.';
       } else {
-        return res.status(400).json({ error: 'Invalid status. Use "approve" or "reject".' });
+          return res.status(400).json({ error: 'Invalid status. Use "approve" or "reject".' });
       }
-  
+
       // Add IPFS URL and file data for each document
       const documentData = await Promise.all(
-        claim.documents.map(async (doc) => {
-          const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${doc.ipfsHash}`;
-          try {
-            // Fetch the file data from IPFS
-            const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
-            return {
-              ...doc.toObject(),
-              fileData: response.data.toString('base64'), // Convert file data to base64
-              fileUrl: ipfsUrl, // IPFS URL for the document
-              ipfsHash: doc.ipfsHash // The IPFS hash
-            };
-          } catch (error) {
-            console.error('Error fetching document from IPFS:', error);
-            // Return the document with the URL and hash in case of error
-            return {
-              ...doc.toObject(),
-              fileUrl: ipfsUrl,
-              ipfsHash: doc.ipfsHash
-            };
-          }
-        })
+          claim.documents.map(async (doc) => {
+              const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${doc.ipfsHash}`;
+              try {
+                  // Fetch the file data from IPFS
+                  const response = await axios.get(ipfsUrl, { responseType: 'arraybuffer' });
+                  return {
+                      ...doc.toObject(),
+                      fileData: response.data.toString('base64'), // Convert file data to base64
+                      fileUrl: ipfsUrl, // IPFS URL for the document
+                      ipfsHash: doc.ipfsHash // The IPFS hash
+                  };
+              } catch (error) {
+                  console.error('Error fetching document from IPFS:', error);
+                  // Return the document with the URL and hash in case of error
+                  return {
+                      ...doc.toObject(),
+                      fileUrl: ipfsUrl,
+                      ipfsHash: doc.ipfsHash
+                  };
+              }
+          })
       );
-  
+
       // Save the claim with updated status and review
       await claim.save();
-  
+
       // Return the response with status, claim data, and documents
       res.status(200).json({
-        message: `Claim ${status === 'approve' ? 'approved' : 'rejected'} successfully.`,
-        claim,
-        documents: documentData
+          message: `Claim ${status === 'approve' ? 'approved' : 'rejected'} successfully.`,
+          claim,
+          documents: documentData,
+          rejectionReason: rejectionReason || 'No rejection reason provided.'
       });
-    } catch (error) {
+  } catch (error) {
       console.error('Error occurred while reviewing the claim:', error);
       res.status(500).json({ error: 'Error occurred while reviewing the claim.' });
-    }
-  });
-  
-  
+  }
+});
+
   
   // router.post('/approve', async (req, res) => {
   //   console.log("Inside approved claim");

@@ -1,16 +1,149 @@
+// import express from 'express';
+// import pinataSDK from '@pinata/sdk';
+// import { ethers } from 'ethers';
+// import { keccak256, toUtf8Bytes, parseUnits } from 'ethers';
+// import Claim from '../models/Claim.js'; 
+
+// const router = express.Router();
+
+// // Initialize Pinata client with environment variables
+// const pinata = new pinataSDK({
+//   pinataApiKey: process.env.PINATA_API_KEY,
+//   pinataSecretApiKey: process.env.PINATA_SECRET_API_KEY
+// });
+
+// // Ethereum configuration
+// const provider = new ethers.JsonRpcProvider('HTTP://127.0.0.1:7545');
+// const privateKey = '0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc9b3fba';
+// const wallet = new ethers.Wallet(privateKey, provider);
+
+// // The deployed contract's new address
+// const contractAddress = '0x3dD553C1F602C61DBF3f16610b7C24bBFB83d562'; 
+// const contractABI = 
+// const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+
+// // POST route to submit a claim
+// router.post('/submit', async (req, res) => {
+//   try {
+//     const {
+//       doctorName,
+//       patientName,
+//       doctorId,
+//       patientId,
+//       diagnosis,
+//       treatment,
+//       claimAmount,
+//       reportCID,
+//       walletAddress,
+//       description,
+//     } = req.body;
+
+//     console.log('Received request to submit claim:', req.body);
+
+//     // Validation
+//     if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID || !description) {
+//       console.error('Validation error: Missing required fields');
+//       return res.status(400).json({ error: 'All fields are required.' });
+//     }
+
+//     if (isNaN(claimAmount) || claimAmount <= 0) {
+//       console.error('Validation error: Invalid claim amount');
+//       return res.status(400).json({ error: 'Invalid claim amount.' });
+//     }
+
+//     if (!reportCID.startsWith('Qm')) {
+//       console.error('Validation error: Invalid report CID');
+//       return res.status(400).json({ error: 'Invalid report CID.' });
+//     }
+
+//     // Generate a unique claim ID
+//     const claimId = keccak256(toUtf8Bytes(`${Date.now()}-${patientId}`));
+//     console.log('Generated unique claim ID:', claimId);
+
+//     // Convert claimAmount to BigNumber using parseUnits
+//     const claimAmountInWei = parseUnits(claimAmount.toString(), 18); // Assuming 18 decimals for ETH
+//     console.log('Claim amount in wei:', claimAmountInWei.toString());
+
+//     // Submit the claim to the smart contract
+//     const tx = await contract.submitClaim(
+//       claimId,           // Backend-generated claimId
+//       claimAmountInWei,  // Claim amount (in wei)
+//       description,       // Description of the claim
+//       doctorName,        // Doctor's name
+//       patientName,       // Patient's name
+//       doctorId,          // Doctor's ID
+//       patientId,         // Patient's ID
+//       diagnosis,         // Diagnosis
+//       treatment,         // Treatment
+//       reportCID          // Report CID
+//     );
+
+//     console.log(`Transaction hash: ${tx.hash}`);
+//     const receipt = await provider.waitForTransaction(tx.hash);
+
+//     if (receipt.status !== 1) {
+//       console.error('Transaction failed on the blockchain');
+//       return res.status(500).json({ error: 'Blockchain transaction failed.' });
+//     }
+
+//     console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
+
+//     // Save claim to the database
+//     const newClaim = new Claim({
+//       claimId,           // Backend-generated claimId
+//       doctorName,
+//       patientName,
+//       doctorId,
+//       patientId,
+//       diagnosis,
+//       treatment,
+//       amount: claimAmountInWei.toString(),  // Save the amount as a string
+//       reportCID,
+//       walletAddress,
+//       status: 'pending',
+//       documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+//     });
+
+//     const savedClaim = await newClaim.save();
+//     console.log('Claim saved to the database successfully:', savedClaim);
+
+//     res.status(201).json({
+//       message: 'Claim submitted successfully and stored on the blockchain!',
+//       claimId,
+//       transactionHash: tx.hash
+//     });
+//   } catch (error) {
+//     console.error('Error occurred while submitting the claim:', error);
+//     res.status(500).json({ error: 'Server error. Please try again later.' });
+//   }
+// });
+
+// export default router;
+
+
+
+
 import express from 'express';
-import { ethers } from 'ethers'; 
-import Claim from '../models/Claim.js'; // Import the Claim model
-import ClaimSubmission from '../models/ClaimSubmission.js';
+import { ethers } from 'ethers';
+import pinataSDK from '@pinata/sdk';
+import { keccak256, toUtf8Bytes } from 'ethers';
+import Claim from '../models/Claim.js';
+import axios from 'axios';
 const router = express.Router();
-import { v4 as uuidv4 } from 'uuid';
+
+// Initialize Pinata client with environment variables
+const pinata = new pinataSDK({
+  pinataApiKey: process.env.PINATA_API_KEY,
+  pinataSecretApiKey: process.env.PINATA_SECRET_API_KEY,
+});
+
 // Ethereum configuration
-const provider = new ethers.JsonRpcProvider('HTTP://127.0.0.1:7545'); // Ganache RPC URL
-const privateKey = '0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc9b3fba'; // Ganache account private key
+const provider = new ethers.JsonRpcProvider('HTTP://127.0.0.1:7545');
+const privateKey = '0x266aea04456d3685fd9393aaf11fd7d7a7b31cfd5ce3efbb111e29fbdc9b3fba';
 const wallet = new ethers.Wallet(privateKey, provider);
 
 // The deployed contract's new address
-const contractAddress = '0xC1fd7B8Df6230883b39770cc853025b259E8E411'; // Updated contract address
+const contractAddress = '0xB9Cd9f8Cada31f37A20C42910366BCE5E7381Ad3'; 
 const contractABI = [
   {
     "inputs": [],
@@ -171,6 +304,25 @@ const contractABI = [
       }
     ],
     "name": "DoctorNotified",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "name": "FraudDetected",
     "type": "event"
   },
   {
@@ -341,6 +493,49 @@ const contractABI = [
         "internalType": "address",
         "name": "doctor",
         "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "isFraud",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "reportCID",
+        "type": "string"
+      }
+    ],
+    "name": "detectDuplicateReportCID",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "claimId",
+        "type": "uint256"
+      }
+    ],
+    "name": "detectFraud",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -434,6 +629,11 @@ const contractABI = [
             "internalType": "address",
             "name": "doctor",
             "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isFraud",
+            "type": "bool"
           }
         ],
         "internalType": "struct InsuranceClaim.Claim",
@@ -483,6 +683,19 @@ const contractABI = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "insurer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -509,6 +722,19 @@ const contractABI = [
       }
     ],
     "name": "rejectClaim",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newAdmin",
+        "type": "address"
+      }
+    ],
+    "name": "setAdmin",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -621,15 +847,10 @@ const contractABI = [
     "type": "receive"
   }
 ];
-// Create a contract instance
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
-
-  
-
- // SUBMIT ROUTE 
-
- router.post('/submit', async (req, res) => {
+// POST route to submit a claim
+router.post('/submit', async (req, res) => {
   try {
     const {
       doctorName,
@@ -641,7 +862,7 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
       claimAmount,
       reportCID,
       walletAddress,
-      description,  // Added description here
+      description,
     } = req.body;
 
     console.log('Received request to submit claim:', req.body);
@@ -662,58 +883,83 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
       return res.status(400).json({ error: 'Invalid report CID.' });
     }
 
+    // Ensure walletAddress is a valid Ethereum address
+    try {
+      const validatedAddress = ethers.getAddress(walletAddress);  // This should work with ethers.getAddress()
+      console.log('Valid wallet address:', validatedAddress);
+    } catch (error) {
+      console.error('Validation error: Invalid wallet address', error);
+      return res.status(400).json({ error: `Invalid wallet address: ${error.message}` });
+    }
+
     // Generate a unique claim ID
-    const claimId = ethers.keccak256(ethers.toUtf8Bytes(`${Date.now()}-${patientId}`));
+    const claimId = keccak256(toUtf8Bytes(`${Date.now()}-${patientId}`));
     console.log('Generated unique claim ID:', claimId);
 
-    // Convert claimAmount to BigNumber using parseUnits
-    const claimAmountInWei = ethers.parseUnits(claimAmount.toString(), 18); // Assuming 18 decimals for ETH
+    // Convert claimAmount to BigNumber using ethers.parseUnits (fix for error)
+    const claimAmountInWei = ethers.parseUnits(claimAmount.toString(), 18);  // Assuming 18 decimals for ETH
     console.log('Claim amount in wei:', claimAmountInWei.toString());
 
     // Submit the claim to the smart contract
-    const tx = await contract.submitClaim(
-      claimId,               // Backend-generated claimId
-      claimAmountInWei,      // Claim amount (in wei)
-      description,           // Description of the claim
-      doctorName,            // Doctor's name
-      patientName,           // Patient's name
-      doctorId,              // Doctor's ID
-      patientId,             // Patient's ID
-      diagnosis,             // Diagnosis
-      treatment,             // Treatment
-      reportCID              // Report CID
-    );
+    try {
+      const tx = await contract.submitClaim(
+        claimId,            // Backend-generated claimId
+        claimAmountInWei,   // Claim amount (in wei)
+        description,        // Description of the claim
+        doctorName,         // Doctor's name
+        patientName,        // Patient's name
+        doctorId,           // Doctor's ID
+        patientId,          // Patient's ID
+        diagnosis,          // Diagnosis
+        treatment,          // Treatment
+        reportCID           // Report CID
+      );
 
-    console.log(`Transaction hash: ${tx.hash}`);
-    const receipt = await provider.waitForTransaction(tx.hash);
+      console.log(`Transaction hash: ${tx.hash}`);
+      const receipt = await provider.waitForTransaction(tx.hash);
 
-    if (receipt.status !== 1) {
-      console.error('Transaction failed on the blockchain');
-      return res.status(500).json({ error: 'Blockchain transaction failed.' });
+      if (receipt.status !== 1) {
+        console.error('Transaction failed on the blockchain');
+        return res.status(500).json({ error: 'Blockchain transaction failed.' });
+      }
+
+      console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
+
+      // Save claim to the database
+      const newClaim = new Claim({
+        claimId,            // Backend-generated claimId
+        doctorName,
+        patientName,
+        doctorId,
+        patientId,
+        diagnosis,
+        treatment,
+        amount: claimAmountInWei.toString(),  // Save the amount as a string
+        reportCID,
+        walletAddress,
+        status: 'pending',
+        documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+      });
+
+      const savedClaim = await newClaim.save();
+      console.log('Claim saved to the database successfully:', savedClaim);
+
+      res.status(201).json({
+        message: 'Claim submitted successfully and stored on the blockchain!',
+        claimId,
+        transactionHash: tx.hash,
+      });
+
+    } catch (blockchainError) {
+      if (blockchainError.message.includes("This reportCID has already been used for another claim")) {
+        console.error('Duplicate reportCID found');
+        return res.status(400).json({ error: 'Duplicate reportCID found. This report has already been used for another claim.' });
+      }
+
+      console.error('Error while submitting claim:', blockchainError);
+      res.status(500).json({ error: 'Don\'t use duplicate one' });
     }
 
-    console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
-
-    // Save claim to the database
-    const newClaim = new Claim({
-      claimId,               // Backend-generated claimId
-      doctorName,
-      patientName,
-      doctorId,
-      patientId,
-      diagnosis,
-      treatment,
-      amount: parseFloat(claimAmount), // Save the original claim amount (in fiat currency)
-      reportCID,
-      walletAddress,
-      status: 'pending',
-      documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
-    });
-
-    const savedClaim = await newClaim.save();
-    console.log('Claim saved to the database successfully:', savedClaim);
-
-    res.status(201).json({ message: 'Claim submitted successfully and stored on the blockchain!', claimId });
   } catch (error) {
     console.error('Error occurred while submitting the claim:', error);
     res.status(500).json({ error: 'Server error. Please try again later.' });
@@ -722,140 +968,146 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 
 
- 
+// router.post('/submit', async (req, res) => {
+//   try {
+//     const {
+//       doctorName,
+//       patientName,
+//       doctorId,
+//       patientId,
+//       diagnosis,
+//       treatment,
+//       claimAmount,
+//       reportCID,
+//       walletAddress,
+//       description,
+//     } = req.body;
 
+//     console.log('Received request to submit claim:', req.body);
 
+//     // Validation
+//     if (!patientName || !patientId || !doctorId || !diagnosis || !treatment || !claimAmount || !reportCID || !description) {
+//       console.error('Validation error: Missing required fields');
+//       return res.status(400).json({ error: 'All fields are required.' });
+//     }
 
- 
+//     if (isNaN(claimAmount) || claimAmount <= 0) {
+//       console.error('Validation error: Invalid claim amount');
+//       return res.status(400).json({ error: 'Invalid claim amount.' });
+//     }
 
+//     if (!reportCID.startsWith('Qm')) {
+//       console.error('Validation error: Invalid report CID');
+//       return res.status(400).json({ error: 'Invalid report CID.' });
+//     }
 
+//     // Ensure walletAddress is a valid Ethereum address
+//     try {
+//       const validatedAddress = ethers.getAddress(walletAddress);  // This should work with ethers.getAddress()
+//       console.log('Valid wallet address:', validatedAddress);
+//     } catch (error) {
+//       console.error('Validation error: Invalid wallet address', error);
+//       return res.status(400).json({ error: `Invalid wallet address: ${error.message}` });
+//     }
 
-router.get('/status/:claimId', async (req, res) => {
-  const { claimId } = req.params;
-  console.log(`Received request for claim ID: ${claimId}`);  // Add logging to see what claimId is received
+//     // **Step 1: Integrate Fraud Detection API Call**
+//     try {
+//       const fraudDetectionResponse = await axios.post('http://localhost:5001/predict', {
+//         DiagnosisCode: diagnosis,
+//         TreatmentCode: treatment,
+//         IsDuplicate: 'Unknown',  // You may want to modify this to capture actual duplicate detection
+//         ClaimAmount: claimAmount,
+//       });
 
-  try {
-    // Find the claim by its unique ID
-    const claim = await Claim.findOne({ claimId: claimId });
+//       const { fraud } = fraudDetectionResponse.data;
 
-    console.log('Claim found:', claim);  // Log the result of the query
+//       // If fraud is detected, return an error response
+//       if (fraud) {
+//         console.error('Fraud detected for this claim');
+//         return res.status(400).json({ error: 'This claim has been flagged as fraudulent.' });
+//       } else {
+//         console.log('Claim is legitimate');
+//       }
 
-    if (!claim) {
-      return res.status(404).json({ error: "Claim not found." });
-    }
+//     } catch (fraudDetectionError) {
+//       console.error('Error while calling fraud detection API:', fraudDetectionError);
+//       return res.status(500).json({ error: 'Failed to check fraud detection.' });
+//     }
 
-    // Return the status of the claim
-    return res.status(200).json({ status: claim.status });
-  } catch (error) {
-    console.error("Error fetching claim status:", error);
-    return res.status(500).json({ error: "Internal server error." });
-  }
-});
+//     // Generate a unique claim ID
+//     const claimId = keccak256(toUtf8Bytes(`${Date.now()}-${patientId}`));
+//     console.log('Generated unique claim ID:', claimId);
 
- 
+//     // Convert claimAmount to BigNumber using ethers.parseUnits (fix for error)
+//     const claimAmountInWei = ethers.parseUnits(claimAmount.toString(), 18);  // Assuming 18 decimals for ETH
+//     console.log('Claim amount in wei:', claimAmountInWei.toString());
 
+//     // Submit the claim to the smart contract
+//     try {
+//       const tx = await contract.submitClaim(
+//         claimId,            // Backend-generated claimId
+//         claimAmountInWei,   // Claim amount (in wei)
+//         description,        // Description of the claim
+//         doctorName,         // Doctor's name
+//         patientName,        // Patient's name
+//         doctorId,           // Doctor's ID
+//         patientId,          // Patient's ID
+//         diagnosis,          // Diagnosis
+//         treatment,          // Treatment
+//         reportCID           // Report CID
+//       );
 
-router.get('/claims', async (req, res) => {
-  try {
-    const claims = await Claim.find();
+//       console.log(`Transaction hash: ${tx.hash}`);
+//       const receipt = await provider.waitForTransaction(tx.hash);
 
-    if (!claims.length) {
-      console.log('No claims found in the database.');
-      return res.status(404).json({ message: 'No claims found' });
-    }
+//       if (receipt.status !== 1) {
+//         console.error('Transaction failed on the blockchain');
+//         return res.status(500).json({ error: 'Blockchain transaction failed.' });
+//       }
 
-    console.log('Fetched claims:', claims);
+//       console.log(`Transaction mined successfully in block ${receipt.blockNumber}`);
 
-    const claimsWithDetails = claims.map(claim => ({
-      claimId: claim.claimId,
-      doctorName: claim.doctorName,
-      patientName: claim.patientName,
-      doctorId: claim.doctorId,
-      patientId: claim.patientId,
-      diagnosis: claim.diagnosis,
-      treatment: claim.treatment,
-      amount: claim.amount,
-      status: claim.status.trim(),
-      submissionDate: claim.createdAt ? claim.createdAt.toISOString() : 'N/A',
-      transactionHash: claim.transactionHash || 'N/A',
-      documents: claim.documents,
-    }));
+//       // Save claim to the database
+//       const newClaim = new Claim({
+//         claimId,            // Backend-generated claimId
+//         doctorName,
+//         patientName,
+//         doctorId,
+//         patientId,
+//         diagnosis,
+//         treatment,
+//         amount: claimAmountInWei.toString(),  // Save the amount as a string
+//         reportCID,
+//         walletAddress,
+//         status: 'pending',
+//         documents: [{ fileUrl: `https://ipfs.io/ipfs/${reportCID}`, ipfsHash: reportCID, fileType: 'pdf' }],
+//       });
 
-    res.status(200).json(claimsWithDetails);
-  } catch (err) {
-    console.error('Error fetching claims:', err);
-    res.status(500).json({ message: 'Error fetching claims' });
-  }
-});
+//       const savedClaim = await newClaim.save();
+//       console.log('Claim saved to the database successfully:', savedClaim);
 
+//       res.status(201).json({
+//         message: 'Claim submitted successfully and stored on the blockchain!',
+//         claimId,
+//         transactionHash: tx.hash,
+//       });
 
-// TODO: FOR DELETION
+//     } catch (blockchainError) {
+//       if (blockchainError.message.includes("This reportCID has already been used for another claim")) {
+//         console.error('Duplicate reportCID found');
+//         return res.status(400).json({ error: 'Duplicate reportCID found. This report has already been used for another claim.' });
+//       }
 
-router.delete('/claims/:claimId', async (req, res) => {
-  const { claimId } = req.params;
-  console.log('Claim ID from request:', claimId);
+//       console.error('Error while submitting claim:', blockchainError);
+//       res.status(500).json({ error: 'Don\'t use duplicate one' });
+//     }
 
-  try {
-      const claims = await ClaimSubmission.find();
-      console.log('Claim IDs in database:', claims.map(c => c.claimId));
-
-      const deletedClaim = await ClaimSubmission.findOneAndDelete({ claimId });
-      if (!deletedClaim) {
-          return res.status(404).json({ error: 'Claim not found' });
-      }
-      res.status(200).json({ message: 'Claim deleted successfully', deletedClaim });
-  } catch (error) {
-      console.error('Error deleting claim:', error);
-      res.status(500).json({ error: 'Failed to delete claim' });
-  }
-});
-
-
-router.get('/status/claim/:claimId', async (req, res) => {
-  try {
-    // Extract claimId from request parameters
-    const { claimId } = req.params;
-
-    // Find the claim in the database using the claimId
-    const claim = await Claim.findOne({ claimId });
-
-    // Check if the claim exists
-    if (!claim) {
-      console.log('Claim not found with claimId:', claimId);
-      return res.status(404).json({ message: 'Claim not found' });
-    }
-
-    console.log('Fetched claim:', claim);
-
-    // Send the claim details as response
-    const claimWithDetails = {
-      claimId: claim.claimId,
-      doctorName: claim.doctorName,
-      patientName: claim.patientName,
-      doctorId: claim.doctorId,
-      patientId: claim.patientId,
-      diagnosis: claim.diagnosis,
-      treatment: claim.treatment,
-      amount: claim.amount,
-      status: claim.status.trim(),
-      submissionDate: claim.createdAt ? claim.createdAt.toISOString() : 'N/A',
-      transactionHash: claim.transactionHash || 'N/A',
-      documents: claim.documents,
-    };
-
-    res.status(200).json(claimWithDetails);
-  } catch (err) {
-    console.error('Error fetching claim:', err);
-    res.status(500).json({ message: 'Error fetching claim' });
-  }
-});
-
-
-
+//   } catch (error) {
+//     console.error('Error occurred while submitting the claim:', error);
+//     res.status(500).json({ error: 'Server error. Please try again later.' });
+//   }
+// });
 
 
 
 export default router;
-
-
-

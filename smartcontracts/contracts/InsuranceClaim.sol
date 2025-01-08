@@ -12,6 +12,7 @@ contract InsuranceClaim {
         ClaimStatus status;
         uint256 timestamp;
         address doctor;  // Address of the doctor who needs to verify the claim
+        bool isFraud;    // Mark if the claim is flagged as fraud
     }
 
     // Struct to represent claim details when submitting a new claim
@@ -34,10 +35,11 @@ contract InsuranceClaim {
     mapping(address => uint256) public claimCountPerClaimant; // Mapping from claimant address to claim count
 
     address public admin; // The admin address (could be a contract manager or owner)
+    address public insurer; // The insurer's address for validation and payouts
 
     // Events for various actions
     event ClaimSubmitted(
-        uint256 indexed claimId, 
+        uint256 indexed claimId,    
         address indexed claimant,
         uint256 amount,
         string description,
@@ -56,6 +58,7 @@ contract InsuranceClaim {
     event ClaimRejected(uint256 indexed claimId, string reason);
     event ClaimPaid(uint256 indexed claimId);
     event DoctorNotified(address indexed doctor, uint256 indexed claimId); // Notify doctor about pending claim verification
+    event FraudDetected(uint256 indexed claimId, string reason); // Event to log fraud detection
 
     // Modifier to restrict access to admin functions
     modifier onlyAdmin() {
@@ -63,77 +66,111 @@ contract InsuranceClaim {
         _;
     }
 
-    // Constructor sets the deployer as the admin
+    // Modifier to restrict access to insurer functions
+    modifier onlyInsurer() {
+        require(msg.sender == insurer, "Not authorized");
+        _;
+    }
+
+    // Constructor sets the deployer as the admin and insurer
     constructor() {
         admin = msg.sender;
+        insurer = msg.sender; // Initially setting insurer to the contract deployer (could be changed later)
     }
 
     // Function to submit a new claim
-    function submitClaim(
-        uint256 claimId,             // Backend-generated claimId
-        uint256 amount,
-        string memory description,
-        string memory doctorName,
-        string memory patientName,
-        uint256 doctorId,
-        uint256 patientId,
-        string memory diagnosis,
-        string memory treatment,
-        string memory reportCID
-    ) public {
-        require(amount > 0, "Claim amount must be greater than zero");
+    // Function to submit a new claim
+function submitClaim(
+    uint256 claimId,  // Keep claimId as passed from backend
+    uint256 amount,
+    string memory description,
+    string memory doctorName,
+    string memory patientName,
+    uint256 doctorId,
+    uint256 patientId,
+    string memory diagnosis,
+    string memory treatment,
+    string memory reportCID
+) public {
+    require(amount > 0, "Claim amount must be greater than zero");
 
-        claimCount++; // Increment the claim counter
+    // Check if the reportCID is already used for another claim
+    bool isDuplicate = detectDuplicateReportCID(reportCID);
+    require(!isDuplicate, "This reportCID has already been used for another claim");
 
-        // Creating claim details struct
-        ClaimDetails memory details = ClaimDetails({
-            doctorName: doctorName,
-            patientName: patientName,
-            doctorId: doctorId,
-            patientId: patientId,
-            diagnosis: diagnosis,
-            treatment: treatment,
-            reportCID: reportCID
-        });
+    // Creating claim details struct
+    ClaimDetails memory details = ClaimDetails({
+        doctorName: doctorName,
+        patientName: patientName,
+        doctorId: doctorId,
+        patientId: patientId,
+        diagnosis: diagnosis,
+        treatment: treatment,
+        reportCID: reportCID
+    });
 
-        // Assign a doctor for verification
-        address doctor = msg.sender; // In your app, the doctor could be selected via a UI or passed as an argument.
+    // Assign a doctor for verification
+    address doctor = msg.sender;
 
-        // Creating claim and adding to claims mapping
-        claims[claimId] = Claim(
-            claimId,                   // Using backend-generated claimId
-            msg.sender,
-            amount,
-            description,
-            details,
-            ClaimStatus.Pending,
-            block.timestamp,
-            doctor
-        );
+    // Creating claim and adding to claims mapping
+    claims[claimId] = Claim(
+        claimId, 
+        msg.sender,
+        amount,
+        description,
+        details,
+        ClaimStatus.Pending,
+        block.timestamp,
+        doctor,
+        false // Initially, the claim is not flagged as fraud
+    );
 
-        // Storing claim id for the claimant for easy access
-        claimantClaims[msg.sender].push(claimId);
-        claimCountPerClaimant[msg.sender]++;
+    // Store claimId for the claimant
+    claimantClaims[msg.sender].push(claimId); // Storing uint256 claimId
 
-        // Emit the claim submission event
-        emit ClaimSubmitted(
-            claimId, 
-            msg.sender, 
-            amount, 
-            description, 
-            details.doctorName, 
-            details.patientName, 
-            details.doctorId, 
-            details.patientId, 
-            details.diagnosis, 
-            details.treatment, 
-            details.reportCID, 
-            block.timestamp
-        );
+    // Increment claim count for claimant
+    claimCountPerClaimant[msg.sender]++;
 
-        // Notify the doctor about pending verification
-        emit DoctorNotified(doctor, claimId);
+    // Emit the claim submission event
+    emit ClaimSubmitted(
+        claimId, 
+        msg.sender, 
+        amount, 
+        description, 
+        details.doctorName, 
+        details.patientName, 
+        details.doctorId, 
+        details.patientId, 
+        details.diagnosis, 
+        details.treatment, 
+        details.reportCID, 
+        block.timestamp
+    );
+
+    // Notify the doctor about pending verification
+    emit DoctorNotified(doctor, claimId);
+}
+
+
+  
+    // Add this function to allow the admin to be updated
+    function setAdmin(address newAdmin) public onlyAdmin {
+        admin = newAdmin;
     }
+
+// Function to detect duplicate reportCID across all claims of a claimant
+function detectDuplicateReportCID(string memory reportCID) public view returns (bool) {
+    for (uint256 i = 0; i < claimantClaims[msg.sender].length; i++) {
+        uint256 otherClaimId = claimantClaims[msg.sender][i];
+        Claim storage otherClaim = claims[otherClaimId];
+
+        // Compare the reportCID using keccak256 to avoid the storage reference issue
+        if (keccak256(abi.encodePacked(otherClaim.details.reportCID)) == keccak256(abi.encodePacked(reportCID))) {
+            return true; // Flag as duplicate if the same reportCID is used for different claims
+        }
+    }
+    return false;
+}
 
     // Function to get the details of a specific claim by claimId
     function getClaim(uint256 claimId) public view returns (Claim memory) {
@@ -148,8 +185,16 @@ contract InsuranceClaim {
         require(claim.doctor == msg.sender, "Only the assigned doctor can verify the claim");
         require(claim.status == ClaimStatus.Pending, "Claim is not pending");
 
-        claim.status = ClaimStatus.Verified;
-        emit ClaimVerified(claimId);
+        // Fraud detection mechanism: You can add logic here to check for duplicate claims or overbilling
+        bool fraudDetected = detectFraud(claimId);
+        if(fraudDetected) {
+            claim.isFraud = true;
+            claim.status = ClaimStatus.Rejected; // Automatically reject if fraud is detected
+            emit FraudDetected(claimId, "Fraudulent activity detected");
+        } else {
+            claim.status = ClaimStatus.Verified;
+            emit ClaimVerified(claimId);
+        }
     }
 
     // Function to approve a claim (only admin can approve claims)
@@ -180,6 +225,30 @@ contract InsuranceClaim {
         claim.status = ClaimStatus.Paid;
         payable(claim.claimant).transfer(claim.amount); // Transfer the claim amount to the claimant
         emit ClaimPaid(claimId);
+    }
+
+    // Function to detect fraudulent activities (e.g., duplicate claims, overbilling)
+    function detectFraud(uint256 claimId) public view returns (bool) {
+        Claim storage claim = claims[claimId];
+
+        // Fraud detection logic (this is just an example, you should implement your own rules)
+        if (claim.amount > 10000) {
+            return true; // Flag as fraud if the claim amount is unusually high
+        }
+
+        // Duplicate claims detection (you can add more advanced checks here)
+        for (uint256 i = 0; i < claimantClaims[claim.claimant].length; i++) {
+            uint256 otherClaimId = claimantClaims[claim.claimant][i];
+            if (otherClaimId != claimId) {
+                Claim storage otherClaim = claims[otherClaimId];
+
+                // Compare the reportCID using keccak256 to avoid the storage reference issue
+                if (keccak256(abi.encodePacked(otherClaim.details.reportCID)) == keccak256(abi.encodePacked(claim.details.reportCID))) {
+                    return true; // Flag as fraud if the same reportCID is used for different claims
+                }
+            }
+        }
+        return false;
     }
 
     // Function to get all claims of a claimant

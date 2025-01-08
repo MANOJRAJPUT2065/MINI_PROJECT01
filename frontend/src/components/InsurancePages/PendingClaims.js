@@ -9,7 +9,7 @@ const PendingClaims = () => {
     // Fetch the pending claims data from your backend
     const fetchPendingClaims = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/claims/pending');
+        const response = await fetch('http://localhost:5000/api/claims/pending/');
         const data = await response.json();
 
         if (data && data.pendingClaims) {
