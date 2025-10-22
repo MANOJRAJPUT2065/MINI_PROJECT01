@@ -54,6 +54,8 @@ This **next-generation healthcare platform** provides:
 ## 🧱 System Architecture
 
 ```plaintext
+High-level components
+
 +-------------+      +---------------+      +------------------+
 |  Frontend   | <--> |   Backend     | <--> |   MongoDB        |
 |  (React.js) |      | (Node/Express)|      |   (Encrypted DB) |
@@ -64,7 +66,7 @@ This **next-generation healthcare platform** provides:
       |                     |-------> AI Chatbot (Dialogflow / OpenAI API)
       |
       +---> Auth (JWT + MetaMask)
-````
+```
 
 ---
 
@@ -96,6 +98,40 @@ This **next-generation healthcare platform** provides:
 | ![Web3.js](https://img.shields.io/badge/Web3.js-F16822?logo=web3.js\&logoColor=white)    | Ethereum interactions      |
 | ![OpenAI](https://img.shields.io/badge/OpenAI-412991?logo=openai\&logoColor=white)       | AI chatbot or NLP          |
 | ![IPFS](https://img.shields.io/badge/IPFS-65C2CB?logo=ipfs\&logoColor=white)             | Decentralized file storage |
+
+---
+
+## 🧭 How It Works (at a glance)
+
+- Authentication
+  - Email/password flows issue a JWT stored in `localStorage` on the frontend.
+  - Optional MetaMask connect enables signing and submitting claims tied to a wallet.
+- Claim submission
+  - Patient uploads a report; the file is pinned to IPFS (Pinata) and returns a `reportCID`.
+  - Backend generates a unique `claimId`, writes the claim to MongoDB, and calls the smart contract `submitClaim(...)` with the same `claimId` and `reportCID`.
+- Claim review and verification
+  - Doctors/insurers fetch pending claims from the backend.
+  - Verification calls the contract `verifyClaim(claimId)`; rejection/approval are reflected on-chain and mirrored in MongoDB.
+  - Optional fraud check hits the Python service (`/predict`) before approval.
+- Tracking and notifications
+  - Users poll claim status via REST endpoints; backend can surface contract events and DB state.
+
+---
+
+## 🔄 Key Workflows
+
+### Claim submission (patient)
+1) Frontend uploads PDF to Pinata → gets `reportCID`.
+2) Frontend calls `POST /api/_claims/submit` with claim details, `reportCID`, and wallet address.
+3) Backend:
+   - Validates payload, generates `claimId`.
+   - Calls `InsuranceClaim.submitClaim(...)` using ethers.
+   - Saves claim in MongoDB with the same `claimId`.
+
+### Claim verification (doctor/insurer)
+1) Frontend fetches pending list: `GET /api/claims/pending`.
+2) Verification: `POST /api/claims/pending/validate/:claimId` (invokes `verifyClaim` on-chain, updates DB).
+3) Review decision: `POST /api/claims/pending/review/:claimId` with `approve` or `reject` and optional `doctorReview`.
 
 ---
 
@@ -141,6 +177,15 @@ Runs on `http://localhost:3000`
 
 ---
 
+## 🔑 Environment variables (quick reference)
+
+- Backend: `PORT`, `MONGO_URI`, `JWT_SECRET`, `EMAIL_USER`, `EMAIL_PASS`, `CLOUD_NAME`, `API_KEY`, `API_SECRET`, `PINATA_API_KEY`, `PINATA_SECRET_API_KEY`, `GEMINI_API_KEY`, `ETH_RPC_URL`, `PRIVATE_KEY`, `CONTRACT_ADDRESS`, `FRAUD_API_URL`, `CLIENT_URL`
+- Frontend: `REACT_APP_PINATA_API_KEY`, `REACT_APP_PINATA_SECRET_API_KEY`
+
+See `docs/env.example` for a complete, commented template.
+
+---
+
 ## 🚀 Hosting
 
 You can deploy:
@@ -159,6 +204,14 @@ You can deploy:
 3. **Upload reports**, view insurance plans, track claims
 4. **Chat with AI bot** for instant support
 5. **Admin can verify doctors**, approve claims, monitor analytics
+
+---
+
+## 🔒 Security note
+
+- Do NOT hardcode private keys or contract addresses; use environment variables listed above.
+- Configure CORS narrowly in production and enable rate limiting on sensitive routes.
+- See `docs/security.md` for a full checklist and recommendations.
 
 ---
 
@@ -201,9 +254,5 @@ Claim Processing Components
       | File Management   | ██         10%
       | Notifications     | █           5%
       +-------------------+
-```
-
----
-
 ```
 
