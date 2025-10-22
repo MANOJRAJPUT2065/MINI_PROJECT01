@@ -125,7 +125,7 @@ npm install
 npm run dev
 ```
 
-Runs on `http://localhost:3000`
+Runs on `http://localhost:5000`
 
 ---
 
@@ -134,10 +134,10 @@ Runs on `http://localhost:3000`
 ```bash
 cd frontend
 npm install
-npm run dev
+npm start
 ```
 
-Runs on `http://localhost:5173`
+Runs on `http://localhost:3000`
 
 ---
 
@@ -172,6 +172,20 @@ Please fork the repo, create a branch, and raise a PR 🙌
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 📚 Full Documentation
+
+See the `docs/` folder for detailed guides:
+
+- Backend: `docs/backend.md`
+- Frontend: `docs/frontend.md`
+- Python Fraud Service: `docs/python.md`
+- Smart Contracts: `docs/contracts.md`
+- API Reference: `docs/api.md`
+- Security & Troubleshooting: `docs/security.md`
+- Environment Template: `docs/env.example`
 
 ---
 
